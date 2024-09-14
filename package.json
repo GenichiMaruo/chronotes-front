@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "npx @biomejs/biome lint ./src --write",
-    "format": "npx @biomejs/biome format . ./src --write"
+    "lint": "npx @biomejs/biome lint ./app --write",
+    "format": "npx @biomejs/biome format . ./app --write"
   },
   "dependencies": {
     "@radix-ui/react-icons": "^1.3.0",
