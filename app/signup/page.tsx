@@ -4,31 +4,38 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation"; // app routerではuseRouterではなくuseNavigationを使用
-import { setCookie } from "@/lib/cookie"; // トークンを保存するための関数
+import { useRouter } from "next/navigation";
+import { setCookie } from "@/lib/cookie";
 import Link from "next/link";
 
-export default function Login() {
+export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async () => {
+  const handleSignup = async () => {
     setLoading(true);
     setError("");
 
     // バリデーションチェック
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       setError("すべてのフィールドを入力してください");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("パスワードが一致しません");
       setLoading(false);
       return;
     }
 
     try {
       // APIリクエストを送信
-      const response = await fetch("/api/login", {
+      const response = await fetch("/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,7 +44,7 @@ export default function Login() {
       });
 
       if (!response.ok) {
-        throw new Error("ログインに失敗しました");
+        throw new Error("サインアップに失敗しました");
       }
 
       const { token } = await response.json();
@@ -45,18 +52,14 @@ export default function Login() {
       // トークンをCookieに保存
       setCookie("token", token, 7); // トークンを7日間保持
 
-      // ログイン後のリダイレクト
-      router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
+      // サインアップ後のリダイレクト
+      router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError("ログインに失敗しました");
+        setError("サインアップに失敗しました");
       }
-
-      // debug用にログイン失敗でもダミーのトークンをセットしてログイン後の画面に遷移する
-      setCookie("token", "dummy", 7);
-      router.push("/");
     } finally {
       setLoading(false);
     }
@@ -71,7 +74,7 @@ export default function Login() {
       </header>
 
       <main className="flex flex-col items-center justify-center flex-grow">
-        <h1 className="text-2xl mb-4">ログイン</h1>
+        <h1 className="text-2xl mb-4">サインアップ</h1>
         <div className="w-full max-w-md">
           <Label htmlFor="email">メールアドレス</Label>
           <Input
@@ -93,16 +96,26 @@ export default function Login() {
             placeholder="パスワードを入力してください"
           />
 
+          <Label htmlFor="confirmPassword">パスワード確認</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="mb-4"
+            placeholder="パスワードを再度入力してください"
+          />
+
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
-          <Button onClick={handleLogin} disabled={loading} className="w-full">
-            {loading ? "ログイン中..." : "ログイン"}
+          <Button onClick={handleSignup} disabled={loading} className="w-full">
+            {loading ? "サインアップ中..." : "サインアップ"}
           </Button>
 
           <div className="mt-4">
-            <Link href="/signup" className="text-blue-500">
-              サインアップはこちら
-            </Link>
+            <a href="/login" className="text-blue-500">
+              ログインはこちら
+            </a>
           </div>
         </div>
       </main>
