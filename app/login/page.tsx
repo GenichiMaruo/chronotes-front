@@ -47,8 +47,13 @@ export default function Login() {
 
       // ログイン後のリダイレクト
       router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
-    } catch (error: any) {
-      setError(error.message || "ログインに失敗しました");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("ログインに失敗しました");
+      }
+
       // debug用にログイン失敗でもダミーのトークンをセットしてログイン後の画面に遷移する
       setCookie("token", "dummy", 7);
       router.push("/");

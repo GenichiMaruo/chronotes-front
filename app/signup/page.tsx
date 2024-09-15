@@ -54,8 +54,12 @@ export default function Signup() {
 
       // サインアップ後のリダイレクト
       router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
-    } catch (error: any) {
-      setError(error.message || "サインアップに失敗しました");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("サインアップに失敗しました");
+      }
     } finally {
       setLoading(false);
     }
