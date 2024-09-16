@@ -16,9 +16,9 @@ export default function Home() {
   }, []);
 
   return (
-    <>
+    <div className="h-screen">
       <Header isLoggedIn={isLoggedIn} />
       <HomeContent isLoggedIn={isLoggedIn} />
-    </>
+    </div>
   );
 }
