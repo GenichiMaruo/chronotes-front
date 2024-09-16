@@ -88,7 +88,7 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
         <DialogHeader>
           <DialogTitle>Application Settings</DialogTitle>
         </DialogHeader>
@@ -126,8 +126,7 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Español</SelectItem>
-                <SelectItem value="fr">Français</SelectItem>
+                <SelectItem value="ja">日本語</SelectItem>
               </SelectContent>
             </Select>
           </div>

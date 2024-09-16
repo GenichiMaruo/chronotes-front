@@ -15,14 +15,18 @@
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .bg-custom {
+    background-color: var(--background);
+  }
+  .text-custom {
+    color: var(--foreground);
   }
 }
 
