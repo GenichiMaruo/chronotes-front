@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "npx @biomejs/biome lint ./src --write",
+    "format": "npx @biomejs/biome format . ./src --write"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.0",

@@ -70,7 +70,7 @@ export default function Login() {
         </h1>
       </header>
 
-      <main className="flex flex-col items-center justify-center flex-grow">
+      <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
         <h1 className="text-2xl mb-4">ログイン</h1>
         <div className="w-full max-w-md">
           <Label htmlFor="email">メールアドレス</Label>
