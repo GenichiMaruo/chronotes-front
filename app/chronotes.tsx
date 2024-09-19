@@ -25,7 +25,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { all, createLowlight } from 'lowlight'
-import { PlusCircle, Trash } from 'lucide-react'
+import { PlusCircle, Trash, ChevronLeft, ChevronRight } from 'lucide-react'
 // eslint-disable-next-line
 import CodeBlockComponent from '@/components/code-block'
 import Header from "@/components/header";
@@ -58,6 +58,7 @@ export default function Chronotes() {
   })
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
+  const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
 
   const editor = useEditor({
     extensions: [
@@ -117,7 +118,6 @@ export default function Chronotes() {
     setMemos(updatedMemos)
     localStorage.setItem('memos', JSON.stringify(updatedMemos))
 
-    // 削除したメモが選択されていた場合、別のメモを選択
     if (selectedMemo.id === id) {
       setSelectedMemo(updatedMemos[0] || { id: 0, title: '', content: '' })
       editor?.commands.setContent(updatedMemos[0]?.content || '')
@@ -126,9 +126,21 @@ export default function Chronotes() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header isLoggedIn={true} />
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-1/3 border-r p-4 flex flex-col">
+      {/* サイドバーの表示非表示ボタン（小さい画面用） */}
+      <Button
+        onClick={() => setSidebarVisible(!isSidebarVisible)}
+        className="absolute top-4 left-4 block lg:hidden p-2 z-50"  // スマホでの表示位置を改善
+      >
+        {isSidebarVisible ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
+      </Button>
+      <div className="flex flex-1 overflow-hidden relative">
+
+        {/* サイドバー（エントリーリスト） */}
+        <aside
+          className={`w-64 lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0`}  // サイドバーの横幅を固定し、PCモードで常に表示
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+        >
           <Button onClick={createNewMemo} className="mb-4">
             <PlusCircle className="mr-2 h-4 w-4" /> New Entry
           </Button>
@@ -136,14 +148,16 @@ export default function Chronotes() {
             {memos.map((memo) => (
               <div
                 key={memo.id}
-                className={`p-2 mb-2 cursor-pointer rounded ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
+                className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
                   }`}
               >
-                <div className="flex justify-between items-center">
-                  <div onClick={() => {
-                    setSelectedMemo(memo)
-                    editor?.commands.setContent(memo.content)
-                  }}>
+                <div className="flex justify-between items-center max-w-full">
+                  <div
+                    onClick={() => {
+                      setSelectedMemo(memo);
+                      editor?.commands.setContent(memo.content);
+                    }}
+                  >
                     <h3 className="font-medium">{memo.title}</h3>
                     <p className="text-sm text-muted-foreground truncate">
                       {typeof memo.content === 'string'
@@ -151,22 +165,25 @@ export default function Chronotes() {
                         : ''}
                     </p>
                   </div>
-                  <Button
-                    onClick={() => deleteMemo(memo.id)}
-                    variant="ghost"
-                    className="ml-2 text-red-500 hover:bg-red-100"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
                 </div>
+                <Button
+                  onClick={() => deleteMemo(memo.id)}
+                  variant="ghost"
+                  className="ml-2 text-red-500 hover:bg-red-100 hidden group-hover:block"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </ScrollArea>
         </aside>
-        <main className="flex-1 p-4">
+
+        {/* メインエリア */}
+        <main className="flex-1">
+          <Header isLoggedIn={true} />
           <EditorContent
             editor={editor}
-            className="prose max-w-none h-full focus:outline-none"
+            className="prose max-w-none h-full focus:outline-none p-4"
           />
         </main>
       </div>
