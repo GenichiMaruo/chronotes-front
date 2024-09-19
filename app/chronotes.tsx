@@ -25,9 +25,10 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { all, createLowlight } from 'lowlight'
-import { PlusCircle } from 'lucide-react'
+import { PlusCircle, Trash } from 'lucide-react'
 // eslint-disable-next-line
 import CodeBlockComponent from '@/components/code-block'
+import Header from "@/components/header";
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -47,7 +48,6 @@ interface Memo {
 
 export default function Chronotes() {
   const [memos, setMemos] = useState<Memo[]>(() => {
-    // Load from localStorage
     const savedMemos = localStorage.getItem('memos')
     return savedMemos
       ? JSON.parse(savedMemos)
@@ -91,10 +91,8 @@ export default function Chronotes() {
       const content = editor.getHTML()
       const firstLine = editor.getText().split('\n')[0] || 'Untitled Entry'
 
-      // Update the selected memo
       setSelectedMemo((prev) => ({ ...prev, content, title: firstLine }))
 
-      // Save memos to localStorage for offline support
       setMemos((prevMemos) => {
         const updatedMemos = prevMemos.map((memo) =>
           memo.id === selectedMemo.id ? { ...selectedMemo, content, title: firstLine } : memo
@@ -105,6 +103,7 @@ export default function Chronotes() {
     },
   })
 
+  // 新しいメモを作成
   const createNewMemo = () => {
     const newMemo: Memo = { id: Date.now(), title: 'New Entry', content: '' }
     setMemos([newMemo, ...memos])
@@ -112,8 +111,22 @@ export default function Chronotes() {
     editor?.commands.setContent('')
   }
 
+  // メモを削除
+  const deleteMemo = (id: number) => {
+    const updatedMemos = memos.filter((memo) => memo.id !== id)
+    setMemos(updatedMemos)
+    localStorage.setItem('memos', JSON.stringify(updatedMemos))
+
+    // 削除したメモが選択されていた場合、別のメモを選択
+    if (selectedMemo.id === id) {
+      setSelectedMemo(updatedMemos[0] || { id: 0, title: '', content: '' })
+      editor?.commands.setContent(updatedMemos[0]?.content || '')
+    }
+  }
+
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-screen">
+      <Header isLoggedIn={true} />
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-1/3 border-r p-4 flex flex-col">
           <Button onClick={createNewMemo} className="mb-4">
@@ -125,17 +138,27 @@ export default function Chronotes() {
                 key={memo.id}
                 className={`p-2 mb-2 cursor-pointer rounded ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
                   }`}
-                onClick={() => {
-                  setSelectedMemo(memo)
-                  editor?.commands.setContent(memo.content)
-                }}
               >
-                <h3 className="font-medium">{memo.title}</h3>
-                <p className="text-sm text-muted-foreground truncate">
-                  {typeof memo.content === 'string'
-                    ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
-                    : ''}
-                </p>
+                <div className="flex justify-between items-center">
+                  <div onClick={() => {
+                    setSelectedMemo(memo)
+                    editor?.commands.setContent(memo.content)
+                  }}>
+                    <h3 className="font-medium">{memo.title}</h3>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {typeof memo.content === 'string'
+                        ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
+                        : ''}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => deleteMemo(memo.id)}
+                    variant="ghost"
+                    className="ml-2 text-red-500 hover:bg-red-100"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </ScrollArea>

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { getCookie } from "@/lib/cookie";
 import HomeContent from "@/app/home";
-import Header from "@/components/header";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // ログイン状態を管理
@@ -17,7 +16,6 @@ export default function Home() {
 
   return (
     <div className="h-screen">
-      <Header isLoggedIn={isLoggedIn} />
       <HomeContent isLoggedIn={isLoggedIn} />
     </div>
   );
