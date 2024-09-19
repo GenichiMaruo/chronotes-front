@@ -10,14 +10,12 @@ interface LowlightExtension {
   };
 }
 
-export default function CodeBlock({
-  node: {
-    attrs: { language: defaultLanguage },
-  },
+export default function CodeBlockComponent({
+  node,
   updateAttributes,
   extension,
 }: {
-  node: { attrs: { language: string } };
+  node: { attrs: { language?: string } }; // languageをオプショナルに
   updateAttributes: (attributes: { language: string }) => void;
   extension: LowlightExtension;
 }) {
@@ -34,8 +32,7 @@ export default function CodeBlock({
 
   return (
     <NodeViewWrapper
-      className={`relative code-block group p-4 rounded-md bg-gray-100 dark:bg-gray-800 text-sm leading-6 ${isClicked ? 'border border-gray-300 dark:border-gray-700' : ''
-        }`}
+      className={`relative code-block group p-4 rounded-md bg-gray-100 dark:bg-gray-800 text-sm leading-6 ${isClicked ? 'border border-gray-300 dark:border-gray-700' : ''}`}
       onClick={() => setIsClicked(true)}
       onBlur={() => setIsClicked(false)}
     >
@@ -51,7 +48,7 @@ export default function CodeBlock({
 
           <select
             contentEditable={false}
-            defaultValue={defaultLanguage}
+            value={node.attrs.language || 'null'} // languageがない場合に対応
             onChange={(event) => updateAttributes({ language: event.target.value })}
             className="text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 shadow-sm focus:ring focus:ring-blue-200 dark:focus:ring-blue-800"
           >
