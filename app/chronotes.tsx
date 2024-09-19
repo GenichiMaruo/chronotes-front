@@ -29,6 +29,7 @@ import { PlusCircle, Trash, ChevronLeft, ChevronRight } from 'lucide-react'
 // eslint-disable-next-line
 import CodeBlockComponent from '@/components/code-block'
 import Header from "@/components/header";
+import SummaryBlock from "@/components/summary-block"; // Add this line to import SummaryBlock
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -59,6 +60,16 @@ export default function Chronotes() {
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
   const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
+  const [geminiSummary, setGeminiSummary] = useState({
+    today: 'aaaaa',
+    thisWeek: 'aaaaaaa',
+    thisMonth: 'aaaaaaaaaa',
+    thisYear: 'aaaaaaaaa',
+    q1: 'aaaaa',
+    q2: 'aaaaaaa',
+    q3: 'aaaaaaaaa',
+    q4: 'aaaaaaaaaa',
+  })
 
   const editor = useEditor({
     extensions: [
@@ -133,12 +144,12 @@ export default function Chronotes() {
       >
         {isSidebarVisible ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
       </Button>
-      <div className="flex flex-1 overflow-hidden relative">
 
+      <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー（エントリーリスト） */}
         <aside
           className={`w-64 lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
-            } lg:translate-x-0`}  // サイドバーの横幅を固定し、PCモードで常に表示
+            } lg:translate-x-0`}
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
         >
           <Button onClick={createNewMemo} className="mb-4">
@@ -183,8 +194,25 @@ export default function Chronotes() {
           <Header isLoggedIn={true} />
           <EditorContent
             editor={editor}
-            className="prose max-w-none h-full focus:outline-none p-4"
+            className="prose max-w-none focus:outline-none p-4"
           />
+
+          {/* Geminiのノートまとめ表示エリア */}
+          <section className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Geminiによるノートのまとめ</h2>
+
+            {/* 各期間のまとめを表示 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <SummaryBlock title="今日のまとめ" summary={geminiSummary.today} />
+              <SummaryBlock title="今週のまとめ" summary={geminiSummary.thisWeek} />
+              <SummaryBlock title="今月のまとめ" summary={geminiSummary.thisMonth} />
+              <SummaryBlock title="今年のまとめ" summary={geminiSummary.thisYear} />
+              <SummaryBlock title="四半期まとめ (1-3月)" summary={geminiSummary.q1} />
+              <SummaryBlock title="四半期まとめ (4-6月)" summary={geminiSummary.q2} />
+              <SummaryBlock title="四半期まとめ (7-9月)" summary={geminiSummary.q3} />
+              <SummaryBlock title="四半期まとめ (10-12月)" summary={geminiSummary.q4} />
+            </div>
+          </section>
         </main>
       </div>
     </div>
