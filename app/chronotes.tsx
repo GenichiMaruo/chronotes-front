@@ -60,7 +60,7 @@ export default function Chronotes() {
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
   const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
-  const [geminiSummary, setGeminiSummary] = useState({
+  const [geminiSummary] = useState({
     today: 'aaaaa',
     thisWeek: 'aaaaaaa',
     thisMonth: 'aaaaaaaaaa',
