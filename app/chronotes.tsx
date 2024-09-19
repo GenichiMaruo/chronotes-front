@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Document from '@tiptap/extension-document'
@@ -28,6 +28,11 @@ import { all, createLowlight } from 'lowlight'
 import { PlusCircle } from 'lucide-react'
 // eslint-disable-next-line
 import CodeBlockComponent from '@/components/code-block'
+import Toolbar from './toolbar'
+import Floating from './floating'
+import TaskItem from '@tiptap/extension-task-item'
+import TaskList from '@tiptap/extension-task-list'
+import FloatingMenu from '@tiptap/extension-floating-menu'
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -58,6 +63,7 @@ export default function Chronotes() {
   })
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
+  const floatingToolbarRef = useRef<HTMLDivElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -85,6 +91,23 @@ export default function Chronotes() {
         levels: [1, 2, 3, 4],
       }),
       Placeholder.configure({ placeholder: 'Start writing here...' }),
+      TaskItem.configure({
+        nested: true,
+      }),
+      TaskList,
+      Link.configure({
+        openOnClick: true,
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+      }),
+      FloatingMenu.configure({
+        element: floatingToolbarRef.current!,
+        shouldShow: ({ state }) => {
+          const { selection } = state
+          return !selection.empty
+        },
+      }),
     ],
     content: selectedMemo.content,
     onUpdate: ({ editor }) => {
@@ -110,6 +133,33 @@ export default function Chronotes() {
     setMemos([newMemo, ...memos])
     setSelectedMemo(newMemo)
     editor?.commands.setContent('')
+  }
+
+  useEffect(() => {
+    if (editor) {
+      const updateFloatingMenuPosition = () => {
+        const { selection } = editor.state
+        const { from } = selection
+        if (!editor.view.hasFocus() || selection.empty) {
+          floatingToolbarRef.current!.style.display = 'none'
+          return
+        }
+        const { top, left } = editor.view.coordsAtPos(from)
+        const offset = 70 // 位置を調整するためのオフセット値
+        floatingToolbarRef.current!.style.top = `${top - offset}px`
+        floatingToolbarRef.current!.style.left = `${left}px`
+        floatingToolbarRef.current!.style.display = 'block'
+      }      
+
+      editor.on('selectionUpdate', updateFloatingMenuPosition)
+      return () => {
+        editor.off('selectionUpdate', updateFloatingMenuPosition)
+      }
+    }
+  }, [editor])
+
+  if (!editor) {
+    return null
   }
 
   return (
@@ -141,10 +191,18 @@ export default function Chronotes() {
           </ScrollArea>
         </aside>
         <main className="flex-1 p-4">
+          <Toolbar editor={editor} />
           <EditorContent
             editor={editor}
             className="prose max-w-none h-full focus:outline-none"
           />
+          <div 
+            id="floating-toolbar" 
+            ref={floatingToolbarRef} 
+            className="absolute hidden z-10 bg-white border border-gray-300 rounded shadow-md "
+          >
+            <Floating editor={editor} />
+          </div>
         </main>
       </div>
     </div>
