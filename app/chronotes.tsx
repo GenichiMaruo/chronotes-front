@@ -163,7 +163,7 @@ export default function Chronotes() {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full h-full">
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-1/3 border-r p-4 flex flex-col">
           <Button onClick={createNewMemo} className="mb-4">
@@ -194,12 +194,12 @@ export default function Chronotes() {
           <Toolbar editor={editor} />
           <EditorContent
             editor={editor}
-            className="prose max-w-none h-full focus:outline-none"
+            className="prose h-[80vh] overflow-y-auto focus:outline-none"
           />
           <div 
             id="floating-toolbar" 
             ref={floatingToolbarRef} 
-            className="absolute hidden z-10 bg-white border border-gray-300 rounded shadow-md "
+            className="absolute hidden z-10 border border-gray-300 rounded shadow-md "
           >
             <Floating editor={editor} />
           </div>

@@ -18,7 +18,7 @@ export default function Header({ isLoggedIn }: { isLoggedIn: boolean }) {
   }
 
   return (
-    <header className="w-full p-4 flex justify-between items-center">
+    <header className="w-full h-[10vh] p-4 flex justify-between items-center">
       <h1 className="text-2xl font-bold">
         <Link href="/">Chronotes</Link>
       </h1>

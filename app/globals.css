@@ -258,6 +258,13 @@ body {
   }
 }
 
+.ProseMirror p {
+  width: 100%;
+  word-wrap: break-word; /* 長すぎる単語を折り返す */
+  white-space: normal; /* テキストを通常通りに折り返す */
+  overflow-wrap: break-word; /* サポートされているブラウザでの折り返しを確実にする */
+}
+
 .tiptap:focus {
   outline: none; 
 }

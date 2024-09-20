@@ -3,7 +3,7 @@ import Chronotes from "@/app/chronotes";
 export default function HomeContent({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
-    <div>
+    <div className="h-[90vh]">
       {isLoggedIn ? (
         <Chronotes />
       ) : (
