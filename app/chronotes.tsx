@@ -25,9 +25,11 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { all, createLowlight } from 'lowlight'
-import { PlusCircle } from 'lucide-react'
+import { PlusCircle, Trash, ChevronLeft, ChevronRight } from 'lucide-react'
 // eslint-disable-next-line
 import CodeBlockComponent from '@/components/code-block'
+import Header from "@/components/header";
+import SummaryBlock from "@/components/summary-block"; // Add this line to import SummaryBlock
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -47,7 +49,6 @@ interface Memo {
 
 export default function Chronotes() {
   const [memos, setMemos] = useState<Memo[]>(() => {
-    // Load from localStorage
     const savedMemos = localStorage.getItem('memos')
     return savedMemos
       ? JSON.parse(savedMemos)
@@ -58,6 +59,17 @@ export default function Chronotes() {
   })
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
+  const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
+  const [geminiSummary] = useState({
+    today: 'aaaaa',
+    thisWeek: 'aaaaaaa',
+    thisMonth: 'aaaaaaaaaa',
+    thisYear: 'aaaaaaaaa',
+    q1: 'aaaaa',
+    q2: 'aaaaaaa',
+    q3: 'aaaaaaaaa',
+    q4: 'aaaaaaaaaa',
+  })
 
   const editor = useEditor({
     extensions: [
@@ -91,10 +103,8 @@ export default function Chronotes() {
       const content = editor.getHTML()
       const firstLine = editor.getText().split('\n')[0] || 'Untitled Entry'
 
-      // Update the selected memo
       setSelectedMemo((prev) => ({ ...prev, content, title: firstLine }))
 
-      // Save memos to localStorage for offline support
       setMemos((prevMemos) => {
         const updatedMemos = prevMemos.map((memo) =>
           memo.id === selectedMemo.id ? { ...selectedMemo, content, title: firstLine } : memo
@@ -105,6 +115,7 @@ export default function Chronotes() {
     },
   })
 
+  // 新しいメモを作成
   const createNewMemo = () => {
     const newMemo: Memo = { id: Date.now(), title: 'New Entry', content: '' }
     setMemos([newMemo, ...memos])
@@ -112,10 +123,35 @@ export default function Chronotes() {
     editor?.commands.setContent('')
   }
 
+  // メモを削除
+  const deleteMemo = (id: number) => {
+    const updatedMemos = memos.filter((memo) => memo.id !== id)
+    setMemos(updatedMemos)
+    localStorage.setItem('memos', JSON.stringify(updatedMemos))
+
+    if (selectedMemo.id === id) {
+      setSelectedMemo(updatedMemos[0] || { id: 0, title: '', content: '' })
+      editor?.commands.setContent(updatedMemos[0]?.content || '')
+    }
+  }
+
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-1/3 border-r p-4 flex flex-col">
+    <div className="flex flex-col h-screen">
+      {/* サイドバーの表示非表示ボタン（小さい画面用） */}
+      <Button
+        onClick={() => setSidebarVisible(!isSidebarVisible)}
+        className="absolute top-4 left-4 block lg:hidden p-2 z-50"  // スマホでの表示位置を改善
+      >
+        {isSidebarVisible ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
+      </Button>
+
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* サイドバー（エントリーリスト） */}
+        <aside
+          className={`w-64 lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
+            } lg:translate-x-0`}
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+        >
           <Button onClick={createNewMemo} className="mb-4">
             <PlusCircle className="mr-2 h-4 w-4" /> New Entry
           </Button>
@@ -123,27 +159,58 @@ export default function Chronotes() {
             {memos.map((memo) => (
               <div
                 key={memo.id}
-                className={`p-2 mb-2 cursor-pointer rounded ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
+                className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
                   }`}
-                onClick={() => {
-                  setSelectedMemo(memo)
-                  editor?.commands.setContent(memo.content)
-                }}
               >
-                <h3 className="font-medium">{memo.title}</h3>
-                <p className="text-sm text-muted-foreground truncate">
-                  {typeof memo.content === 'string'
-                    ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
-                    : ''}
-                </p>
+                <div className="flex justify-between items-center max-w-full">
+                  <div
+                    onClick={() => {
+                      setSelectedMemo(memo);
+                      editor?.commands.setContent(memo.content);
+                    }}
+                  >
+                    <h3 className="font-medium">{memo.title}</h3>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {typeof memo.content === 'string'
+                        ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
+                        : ''}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => deleteMemo(memo.id)}
+                  variant="ghost"
+                  className="ml-2 text-red-500 hover:bg-red-100 hidden group-hover:block"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </ScrollArea>
         </aside>
-        <main className="flex-1 p-4">
+
+        {/* メインエリア */}
+        <main className="flex-1">
+          <Header isLoggedIn={true} />
+          {/* Geminiのノートまとめ表示エリア */}
+          <section className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Geminiによるノートのまとめ</h2>
+
+            {/* 各期間のまとめを表示 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <SummaryBlock title="今日のまとめ" summary={geminiSummary.today} />
+              <SummaryBlock title="今週のまとめ" summary={geminiSummary.thisWeek} />
+              <SummaryBlock title="今月のまとめ" summary={geminiSummary.thisMonth} />
+              <SummaryBlock title="今年のまとめ" summary={geminiSummary.thisYear} />
+              <SummaryBlock title="四半期まとめ (1-3月)" summary={geminiSummary.q1} />
+              <SummaryBlock title="四半期まとめ (4-6月)" summary={geminiSummary.q2} />
+              <SummaryBlock title="四半期まとめ (7-9月)" summary={geminiSummary.q3} />
+              <SummaryBlock title="四半期まとめ (10-12月)" summary={geminiSummary.q4} />
+            </div>
+          </section>
           <EditorContent
             editor={editor}
-            className="prose max-w-none h-full focus:outline-none"
+            className="prose max-w-none focus:outline-none p-4"
           />
         </main>
       </div>

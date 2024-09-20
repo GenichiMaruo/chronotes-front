@@ -19,11 +19,13 @@ export default function Header({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
     <header className="w-full p-4 flex justify-between items-center">
-      <h1 className="text-2xl font-bold">
-        <Link href="/">Chronotes</Link>
-      </h1>
       {isLoggedIn ? (
         <>
+          <div className="flex-grow flex justify-center lg:justify-start">
+            <h1 className="text-2xl font-bold">
+              <Link href="/">Chronotes</Link>
+            </h1>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="cursor-pointer">
@@ -46,20 +48,25 @@ export default function Header({ isLoggedIn }: { isLoggedIn: boolean }) {
           <AppSettings open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         </>
       ) : (
-        <nav>
-          <ul className="flex space-x-4">
-            <li>
-              <Button variant="ghost" asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-            </li>
-            <li>
-              <Button asChild>
-                <Link href="/signup">Sign Up</Link>
-              </Button>
-            </li>
-          </ul>
-        </nav>
+        <>
+          <h1 className="text-2xl font-bold">
+            <Link href="/">Chronotes</Link>
+          </h1>
+          <nav>
+            <ul className="flex space-x-4">
+              <li>
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+              </li>
+              <li>
+                <Button asChild>
+                  <Link href="/signup">Sign Up</Link>
+                </Button>
+              </li>
+            </ul>
+          </nav>
+        </>
       )}
     </header>
   );

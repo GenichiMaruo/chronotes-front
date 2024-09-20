@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -29,21 +30,22 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTheme } from "next-themes"
-import { Moon, Sun } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
 
 export default function AppSettings({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { setTheme } = useTheme();
   const [language, setLanguage] = useState('en');
   const [newPassword, setNewPassword] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+  const [showDeleteNotesDialog, setShowDeleteNotesDialog] = useState(false);
 
   // 言語変更処理
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
     localStorage.setItem('language', value);
-    // 他の言語変更ロジックはここに追加
   };
 
   // パスワード変更処理
@@ -80,6 +82,34 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
       if (!response.ok) throw new Error('メール変更に失敗しました');
       console.log('Email changed to:', newEmail);
       setNewEmail('');
+      onClose();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // アカウント削除処理
+  const handleDeleteAccount = async () => {
+    try {
+      const response = await fetch('/api/delete-account', {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('アカウント削除に失敗しました');
+      console.log('Account deleted');
+      onClose();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // ノート全削除処理
+  const handleDeleteNotes = async () => {
+    try {
+      const response = await fetch('/api/delete-notes', {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('ノート削除に失敗しました');
+      console.log('All notes deleted');
       onClose();
     } catch (error) {
       console.error(error);
@@ -180,6 +210,66 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+
+          {/* デンジャーゾーン */}
+          <div className="mt-8">
+            <h2 className="text-red-600 text-lg font-bold">Danger Zone</h2>
+            <div className="mt-4">
+              {/* アカウント削除ボタン */}
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={() => setShowDeleteAccountDialog(true)}
+              >
+                Delete Account
+              </Button>
+
+              {/* ノート全削除ボタン */}
+              <Button
+                variant="destructive"
+                className="w-full mt-2"
+                onClick={() => setShowDeleteNotesDialog(true)}
+              >
+                Delete All Notes
+              </Button>
+            </div>
+          </div>
+
+          {/* アカウント削除確認ダイアログ */}
+          <Dialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+            <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
+              <DialogHeader>
+                <DialogTitle>Are you sure?</DialogTitle>
+              </DialogHeader>
+              <p>Do you really want to delete your account? This action cannot be undone.</p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowDeleteAccountDialog(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteAccount}>
+                  Delete Account
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* ノート全削除確認ダイアログ */}
+          <Dialog open={showDeleteNotesDialog} onOpenChange={setShowDeleteNotesDialog}>
+            <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
+              <DialogHeader>
+                <DialogTitle>Are you sure?</DialogTitle>
+              </DialogHeader>
+              <p>Do you really want to delete all notes? This action cannot be undone.</p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowDeleteNotesDialog(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteNotes}>
+                  Delete All Notes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </DialogContent>
     </Dialog>
