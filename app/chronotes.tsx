@@ -186,7 +186,7 @@ export default function Chronotes() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full h-full">
+    <div className="flex flex-col w-full h-full">
       {/* サイドバーの表示非表示ボタン（小さい画面用） */}
       <Button
         onClick={() => setSidebarVisible(!isSidebarVisible)}
@@ -266,7 +266,7 @@ export default function Chronotes() {
           <div 
             id="floating-toolbar" 
             ref={floatingToolbarRef} 
-            className="absolute hidden z-10 border border-gray-300 rounded shadow-md "
+            className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md "
           >
             <Floating editor={editor} />
           </div>
