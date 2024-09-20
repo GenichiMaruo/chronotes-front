@@ -192,11 +192,6 @@ export default function Chronotes() {
         {/* メインエリア */}
         <main className="flex-1">
           <Header isLoggedIn={true} />
-          <EditorContent
-            editor={editor}
-            className="prose max-w-none focus:outline-none p-4"
-          />
-
           {/* Geminiのノートまとめ表示エリア */}
           <section className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Geminiによるノートのまとめ</h2>
@@ -213,6 +208,10 @@ export default function Chronotes() {
               <SummaryBlock title="四半期まとめ (10-12月)" summary={geminiSummary.q4} />
             </div>
           </section>
+          <EditorContent
+            editor={editor}
+            className="prose max-w-none focus:outline-none p-4"
+          />
         </main>
       </div>
     </div>
