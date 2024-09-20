@@ -1,4 +1,5 @@
 import Chronotes from "@/app/chronotes";
+import Header from "@/components/header";
 
 export default function HomeContent({ isLoggedIn }: { isLoggedIn: boolean }) {
 
@@ -8,6 +9,7 @@ export default function HomeContent({ isLoggedIn }: { isLoggedIn: boolean }) {
         <Chronotes />
       ) : (
         <div className="min-h-screen flex flex-col">
+          <Header isLoggedIn={isLoggedIn} />
           <main className="flex-grow flex items-center justify-center px-4">
             <div className="max-w-2xl text-center">
               <h1 className="text-4xl font-bold mb-4">Welcome to Our Application</h1>
