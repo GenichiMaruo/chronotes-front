@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Document from '@tiptap/extension-document'
@@ -30,6 +30,11 @@ import { PlusCircle, Trash, ChevronLeft, ChevronRight } from 'lucide-react'
 import CodeBlockComponent from '@/components/code-block'
 import Header from "@/components/header";
 import SummaryBlock from "@/components/summary-block"; // Add this line to import SummaryBlock
+import Toolbar from './toolbar'
+import Floating from './floating'
+import TaskItem from '@tiptap/extension-task-item'
+import TaskList from '@tiptap/extension-task-list'
+import FloatingMenu from '@tiptap/extension-floating-menu'
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -70,6 +75,7 @@ export default function Chronotes() {
     q3: 'aaaaaaaaa',
     q4: 'aaaaaaaaaa',
   })
+  const floatingToolbarRef = useRef<HTMLDivElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -97,6 +103,23 @@ export default function Chronotes() {
         levels: [1, 2, 3, 4],
       }),
       Placeholder.configure({ placeholder: 'Start writing here...' }),
+      TaskItem.configure({
+        nested: true,
+      }),
+      TaskList,
+      Link.configure({
+        openOnClick: true,
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+      }),
+      FloatingMenu.configure({
+        element: floatingToolbarRef.current!,
+        shouldShow: ({ state }) => {
+          const { selection } = state
+          return !selection.empty
+        },
+      }),
     ],
     content: selectedMemo.content,
     onUpdate: ({ editor }) => {
@@ -135,8 +158,35 @@ export default function Chronotes() {
     }
   }
 
+  useEffect(() => {
+    if (editor) {
+      const updateFloatingMenuPosition = () => {
+        const { selection } = editor.state
+        const { from } = selection
+        if (!editor.view.hasFocus() || selection.empty) {
+          floatingToolbarRef.current!.style.display = 'none'
+          return
+        }
+        const { top, left } = editor.view.coordsAtPos(from)
+        const offset = 70 // 位置を調整するためのオフセット値
+        floatingToolbarRef.current!.style.top = `${top - offset}px`
+        floatingToolbarRef.current!.style.left = `${left}px`
+        floatingToolbarRef.current!.style.display = 'block'
+      }      
+
+      editor.on('selectionUpdate', updateFloatingMenuPosition)
+      return () => {
+        editor.off('selectionUpdate', updateFloatingMenuPosition)
+      }
+    }
+  }, [editor])
+
+  if (!editor) {
+    return null
+  }
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col w-full h-full">
       {/* サイドバーの表示非表示ボタン（小さい画面用） */}
       <Button
         onClick={() => setSidebarVisible(!isSidebarVisible)}
@@ -208,10 +258,18 @@ export default function Chronotes() {
               <SummaryBlock title="四半期まとめ (10-12月)" summary={geminiSummary.q4} />
             </div>
           </section>
+          <Toolbar editor={editor} />
           <EditorContent
             editor={editor}
-            className="prose max-w-none focus:outline-none p-4"
+            className="prose h-[80vh] overflow-y-auto focus:outline-none"
           />
+          <div 
+            id="floating-toolbar" 
+            ref={floatingToolbarRef} 
+            className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md "
+          >
+            <Floating editor={editor} />
+          </div>
         </main>
       </div>
     </div>
