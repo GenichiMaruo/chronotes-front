@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Document from '@tiptap/extension-document'
@@ -35,6 +35,7 @@ import Floating from './floating'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import FloatingMenu from '@tiptap/extension-floating-menu'
+import { Calendar } from '@/components/ui/calendar'
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -158,6 +159,8 @@ export default function Chronotes() {
     }
   }
 
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
+
   useEffect(() => {
     if (editor) {
       const updateFloatingMenuPosition = () => {
@@ -198,10 +201,16 @@ export default function Chronotes() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー（エントリーリスト） */}
         <aside
-          className={`w-64 lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          className={`lg:relative lg:block absolute top-0 left-0 h-full w-[30vw] max-w-[300px] min-w-[300px] transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
             } lg:translate-x-0`}
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
         >
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-md border flex justify-center"
+          />
           <Button onClick={createNewMemo} className="mb-4">
             <PlusCircle className="mr-2 h-4 w-4" /> New Entry
           </Button>
@@ -240,7 +249,7 @@ export default function Chronotes() {
         </aside>
 
         {/* メインエリア */}
-        <main className="flex-1">
+        <main className="flex-1 max-w-[]">
           <Header isLoggedIn={true} />
           {/* Geminiのノートまとめ表示エリア */}
           <section className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">

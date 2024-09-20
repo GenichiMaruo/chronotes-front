@@ -4,7 +4,7 @@ import Header from "@/components/header";
 export default function HomeContent({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
-    <div className="h-[90vh]">
+    <div className="h-full w-[calc(w-full/3)] max-w-[50rem] min-w-[300px]">
       {isLoggedIn ? (
         <Chronotes />
       ) : (
