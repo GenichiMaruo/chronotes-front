@@ -28,8 +28,8 @@ import { all, createLowlight } from 'lowlight'
 import CodeBlockComponent from '@/components/code-block'
 import Header from "@/components/header";
 import SummaryBlock from "@/components/summary-block"; // Add this line to import SummaryBlock
-import Toolbar from './toolbar'
-import Floating from './floating'
+import Toolbar from '@/components/toolbar'
+import Floating from '@/components/floating'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import FloatingMenu from '@tiptap/extension-floating-menu'
@@ -178,7 +178,7 @@ export default function Chronotes() {
         floatingToolbarRef.current!.style.top = `${top - offset}px`
         floatingToolbarRef.current!.style.left = `${left}px`
         floatingToolbarRef.current!.style.display = 'block'
-      }      
+      }
 
       editor.on('selectionUpdate', updateFloatingMenuPosition)
       return () => {
@@ -197,7 +197,7 @@ export default function Chronotes() {
         {/* サイドバー（エントリーリスト） */}
         <aside
           className={`w-[300px] lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0`}
+            } lg:translate-x-0`}
           style={{ backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)' }} // ダークモードの背景
         >
           <Calendar

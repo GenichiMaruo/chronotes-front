@@ -23,12 +23,12 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
     }
     // empty
     if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      editor.chain().focus().extendMarkRange("link").unsetMark('link').run();
 
       return;
     }
     // update link
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    editor.chain().focus().extendMarkRange("link").setMark("link", { href: url }).run();
   }, [editor]);
 
   if (!editor) {
