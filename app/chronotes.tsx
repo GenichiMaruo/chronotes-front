@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Document from '@tiptap/extension-document'
@@ -33,6 +33,7 @@ import Floating from './floating'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import FloatingMenu from '@tiptap/extension-floating-menu'
+import { Calendar } from '@/components/ui/calendar'
 import HeaderMobile from '@/components/header-mobile'
 
 // create a lowlight instance
@@ -83,6 +84,7 @@ export default function Chronotes() {
   const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
   const floatingToolbarRef = useRef<HTMLDivElement>(null)
   const isMobile = useMediaQuery('(max-width: 1024px)');
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -144,6 +146,24 @@ export default function Chronotes() {
     },
   })
 
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  useEffect(() => {
+    const updateDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    }
+
+    // 初期チェック
+    updateDarkMode()
+
+    // MutationObserverを使ってテーマの変更を監視
+    const observer = new MutationObserver(updateDarkMode)
+    observer.observe(document.documentElement, { attributes: true })
+
+    return () => observer.disconnect()
+  }, [])
+
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
+
   useEffect(() => {
     if (editor) {
       const updateFloatingMenuPosition = () => {
@@ -158,7 +178,7 @@ export default function Chronotes() {
         floatingToolbarRef.current!.style.top = `${top - offset}px`
         floatingToolbarRef.current!.style.left = `${left}px`
         floatingToolbarRef.current!.style.display = 'block'
-      }
+      }      
 
       editor.on('selectionUpdate', updateFloatingMenuPosition)
       return () => {
@@ -176,34 +196,42 @@ export default function Chronotes() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー（エントリーリスト） */}
         <aside
-          className={`w-64 lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
-            } lg:translate-x-0`}
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+          className={`w-[300px] lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0`}
+          style={{ backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)' }} // ダークモードの背景
         >
-          <ScrollArea className="flex-1">
-            {memos.map((memo) => (
-              <div
-                key={memo.id}
-                className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
-                  }`}
-              >
-                <div className="flex justify-between items-center max-w-full">
-                  <div
-                    onClick={() => {
-                      setSelectedMemo(memo);
-                      editor?.commands.setContent(memo.content);
-                    }}
-                  >
-                    <h3 className="font-medium">{memo.title}</h3>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {typeof memo.content === 'string'
-                        ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
-                        : ''}
-                    </p>
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-md border flex justify-center"
+          />
+          <ScrollArea className="flex-1 h-[50vh]">
+            <div className="w-[30vw] max-w-[250px] truncate">
+              {memos.map((memo) => (
+                <div
+                  key={memo.id}
+                  className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
+                    }`}
+                >
+                  <div className="flex justify-between items-center max-w-full">
+                    <div
+                      onClick={() => {
+                        setSelectedMemo(memo);
+                        editor?.commands.setContent(memo.content);
+                      }}
+                    >
+                      <h3 className="font-medium truncate">{memo.title}</h3>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {typeof memo.content === 'string'
+                          ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
+                          : ''}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </ScrollArea>
         </aside>
 
