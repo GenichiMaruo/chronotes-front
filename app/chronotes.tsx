@@ -25,7 +25,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { all, createLowlight } from 'lowlight'
 // eslint-disable-next-line
-import CodeBlockComponent from '@/components/code-block'
+import CodeBlock from '@/components/code-block'
 import Header from "@/components/header";
 import SummaryBlock from "@/components/summary-block"; // Add this line to import SummaryBlock
 import Toolbar from './toolbar'
@@ -103,7 +103,7 @@ export default function Chronotes() {
       TextStyle,
       CodeBlockLowlight.extend({
         addNodeView() {
-          return ReactNodeViewRenderer((props) => <CodeBlockComponent {...props} node={{ ...props.node, attrs: { ...props.node.attrs, language: props.node.attrs.language || 'plaintext' } }} />)
+          return ReactNodeViewRenderer(CodeBlock as any)
         },
       }).configure({ lowlight }),
       Color.configure({ types: [TextStyle.name, Highlight.name] }),
