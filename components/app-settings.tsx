@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
+import { useApiUrl } from "@/components/api-provider";
+import { getCookie, deleteCookie } from "@/lib/cookie";
 
 export default function AppSettings({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { setTheme } = useTheme();
@@ -41,6 +43,7 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
   const [newEmail, setNewEmail] = useState('');
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [showDeleteNotesDialog, setShowDeleteNotesDialog] = useState(false);
+  const apiUrl = useApiUrl();
 
   // 言語変更処理
   const handleLanguageChange = (value: string) => {
@@ -91,11 +94,15 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
   // アカウント削除処理
   const handleDeleteAccount = async () => {
     try {
-      const response = await fetch('/api/delete-account', {
+      const response = await fetch(`${apiUrl}/users/me`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${getCookie('token')}`,
+        },
       });
       if (!response.ok) throw new Error('アカウント削除に失敗しました');
       console.log('Account deleted');
+      deleteCookie('token');
       onClose();
     } catch (error) {
       console.error(error);
