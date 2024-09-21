@@ -139,6 +139,22 @@ export default function Chronotes() {
     },
   })
 
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  useEffect(() => {
+    const updateDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    }
+
+    // 初期チェック
+    updateDarkMode()
+
+    // MutationObserverを使ってテーマの変更を監視
+    const observer = new MutationObserver(updateDarkMode)
+    observer.observe(document.documentElement, { attributes: true })
+
+    return () => observer.disconnect()
+  }, [])
+
   // 新しいメモを作成
   const createNewMemo = () => {
     const newMemo: Memo = { id: Date.now(), title: 'New Entry', content: '' }
@@ -201,9 +217,9 @@ export default function Chronotes() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー（エントリーリスト） */}
         <aside
-          className={`lg:relative lg:block absolute top-0 left-0 h-full w-[30vw] max-w-[300px] transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          className={`lg:relative lg:block absolute top-0 left-0 h-full w-[30vw] max-w-[300px] transition-transform duration-300 border-r p-4 flex flex-col z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
             } lg:translate-x-0`}
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+          style={{ backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)' }} // ダークモードの背景
         >
           <Calendar
             mode="single"
