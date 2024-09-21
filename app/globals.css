@@ -107,21 +107,23 @@ body {
   }
 
   pre {
-    background: var(--black);
-    border-radius: 0.5rem;
-    color: var(--white);
+    --tw-bg-opacity: 1;
+    background-color: rgb(55 65 81 / var(--tw-bg-opacity));
+    color: #FFF;
     font-family: 'JetBrainsMono', monospace;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
 
     code {
-      background: none;
-      color: inherit;
-      font-size: 0.8rem;
+        color: inherit;
+        padding: 0;
+        background: none;
+        font-size: 0.8rem;
     }
 
-    /* Code styling */
     .hljs-comment,
     .hljs-quote {
-      color: #616161;
+        color: #616161;
     }
 
     .hljs-variable,
@@ -134,7 +136,7 @@ body {
     .hljs-name,
     .hljs-selector-id,
     .hljs-selector-class {
-      color: #f98181;
+        color: #F98181;
     }
 
     .hljs-number,
@@ -144,33 +146,33 @@ body {
     .hljs-literal,
     .hljs-type,
     .hljs-params {
-      color: #fbbc88;
+        color: #FBBC88;
     }
 
     .hljs-string,
     .hljs-symbol,
     .hljs-bullet {
-      color: #b9f18d;
+        color: #B9F18D;
     }
 
     .hljs-title,
     .hljs-section {
-      color: #faf594;
+        color: #FAF594;
     }
 
     .hljs-keyword,
     .hljs-selector-tag {
-      color: #70cff8;
+        color: #70CFF8;
     }
 
     .hljs-emphasis {
-      font-style: italic;
+        font-style: italic;
     }
 
     .hljs-strong {
-      font-weight: 700;
+        font-weight: 700;
     }
-  }
+  } 
 }
 
 /* Basic editor styles */
