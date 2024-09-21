@@ -204,22 +204,23 @@ export default function Chronotes() {
             mode="single"
             selected={date}
             onSelect={setDate}
-            className="rounded-md border flex justify-center"
+            className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? 'mt-20' : ''}`}
           />
-          <ScrollArea className="flex-1 h-[50vh]">
-            <div className="w-[30vw] max-w-[250px] truncate">
+          <ScrollArea className="flex-1 h-[50vh] my-10">
+            <div className="w-[250px] truncate">
               {memos.map((memo) => (
                 <div
                   key={memo.id}
                   className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
                     }`}
                 >
-                  <div className="flex justify-between items-center max-w-full">
+                  <div className="flex justify-between items-center w-auto">
                     <div
                       onClick={() => {
                         setSelectedMemo(memo);
                         editor?.commands.setContent(memo.content);
                       }}
+                      className="truncate"
                     >
                       <h3 className="font-medium truncate">{memo.title}</h3>
                       <p className="text-sm text-muted-foreground truncate">
@@ -247,17 +248,30 @@ export default function Chronotes() {
           ) : (
             <Header isLoggedIn={true} />
           )}
-          <div className="px-4">
-            <SummaryBlock />
-            <Toolbar editor={editor} />
-            <EditorContent
-              editor={editor}
-              className="prose h-[80vh] overflow-y-auto focus:outline-none"
-            />
+          <div className="px-4 flex flex-col h-[90vh]">
+            {/* SummaryBlock */}
+            <div className="flex-none">
+              <SummaryBlock />
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex-none">
+              <Toolbar editor={editor} />
+            </div>
+
+            {/* EditorContent: 残りのスペースを占める */}
+            <div className="flex-1 overflow-y-auto">
+              <EditorContent
+                editor={editor}
+                className="prose p-5 focus:outline-none h-full"
+              />
+            </div>
+
+            {/* Floating Toolbar */}
             <div
               id="floating-toolbar"
               ref={floatingToolbarRef}
-              className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md "
+              className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md"
             >
               <Floating editor={editor} />
             </div>
