@@ -103,7 +103,7 @@ export default function Chronotes() {
       TextStyle,
       CodeBlockLowlight.extend({
         addNodeView() {
-          return ReactNodeViewRenderer(CodeBlockComponent)
+          return ReactNodeViewRenderer((props) => <CodeBlockComponent {...props} node={{ ...props.node, attrs: { ...props.node.attrs, language: props.node.attrs.language || 'plaintext' } }} />)
         },
       }).configure({ lowlight }),
       Color.configure({ types: [TextStyle.name, Highlight.name] }),
@@ -144,6 +144,7 @@ export default function Chronotes() {
         return updatedMemos
       })
     },
+    immediatelyRender: false,
   })
 
   const [isDarkMode, setIsDarkMode] = useState(false)
