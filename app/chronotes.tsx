@@ -22,10 +22,8 @@ import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { all, createLowlight } from 'lowlight'
-import { PlusCircle, Trash, ChevronLeft, ChevronRight } from 'lucide-react'
 // eslint-disable-next-line
 import CodeBlockComponent from '@/components/code-block'
 import Header from "@/components/header";
@@ -35,6 +33,7 @@ import Floating from './floating'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import FloatingMenu from '@tiptap/extension-floating-menu'
+import HeaderMobile from '@/components/header-mobile'
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -52,6 +51,23 @@ interface Memo {
   content: string
 }
 
+// カスタムフック：画面サイズがlg以下かどうかを判定
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [matches, query]);
+
+  return matches;
+}
+
 export default function Chronotes() {
   const [memos, setMemos] = useState<Memo[]>(() => {
     const savedMemos = localStorage.getItem('memos')
@@ -65,18 +81,8 @@ export default function Chronotes() {
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
   const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
-  const [geminiSummary] = useState({
-    today: 'aaaaa',
-    thisWeek: 'aaaaaaa',
-    thisMonth: 'aaaaaaaaaa',
-    thisYear: 'aaaaaaaaa',
-    q1: 'aaaaa',
-    q2: 'aaaaaaa',
-    q3: 'aaaaaaaaa',
-    q4: 'aaaaaaaaaa',
-  })
   const floatingToolbarRef = useRef<HTMLDivElement>(null)
-
+  const isMobile = useMediaQuery('(max-width: 1024px)');
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -138,26 +144,6 @@ export default function Chronotes() {
     },
   })
 
-  // 新しいメモを作成
-  const createNewMemo = () => {
-    const newMemo: Memo = { id: Date.now(), title: 'New Entry', content: '' }
-    setMemos([newMemo, ...memos])
-    setSelectedMemo(newMemo)
-    editor?.commands.setContent('')
-  }
-
-  // メモを削除
-  const deleteMemo = (id: number) => {
-    const updatedMemos = memos.filter((memo) => memo.id !== id)
-    setMemos(updatedMemos)
-    localStorage.setItem('memos', JSON.stringify(updatedMemos))
-
-    if (selectedMemo.id === id) {
-      setSelectedMemo(updatedMemos[0] || { id: 0, title: '', content: '' })
-      editor?.commands.setContent(updatedMemos[0]?.content || '')
-    }
-  }
-
   useEffect(() => {
     if (editor) {
       const updateFloatingMenuPosition = () => {
@@ -172,7 +158,7 @@ export default function Chronotes() {
         floatingToolbarRef.current!.style.top = `${top - offset}px`
         floatingToolbarRef.current!.style.left = `${left}px`
         floatingToolbarRef.current!.style.display = 'block'
-      }      
+      }
 
       editor.on('selectionUpdate', updateFloatingMenuPosition)
       return () => {
@@ -187,14 +173,6 @@ export default function Chronotes() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* サイドバーの表示非表示ボタン（小さい画面用） */}
-      <Button
-        onClick={() => setSidebarVisible(!isSidebarVisible)}
-        className="absolute top-4 left-4 block lg:hidden p-2 z-50"  // スマホでの表示位置を改善
-      >
-        {isSidebarVisible ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
-      </Button>
-
       <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー（エントリーリスト） */}
         <aside
@@ -202,9 +180,6 @@ export default function Chronotes() {
             } lg:translate-x-0`}
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
         >
-          <Button onClick={createNewMemo} className="mb-4">
-            <PlusCircle className="mr-2 h-4 w-4" /> New Entry
-          </Button>
           <ScrollArea className="flex-1">
             {memos.map((memo) => (
               <div
@@ -227,13 +202,6 @@ export default function Chronotes() {
                     </p>
                   </div>
                 </div>
-                <Button
-                  onClick={() => deleteMemo(memo.id)}
-                  variant="ghost"
-                  className="ml-2 text-red-500 hover:bg-red-100 hidden group-hover:block"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
               </div>
             ))}
           </ScrollArea>
@@ -241,34 +209,30 @@ export default function Chronotes() {
 
         {/* メインエリア */}
         <main className="flex-1">
-          <Header isLoggedIn={true} />
-          {/* Geminiのノートまとめ表示エリア */}
-          <section className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">Geminiによるノートのまとめ</h2>
-
-            {/* 各期間のまとめを表示 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <SummaryBlock title="今日のまとめ" summary={geminiSummary.today} />
-              <SummaryBlock title="今週のまとめ" summary={geminiSummary.thisWeek} />
-              <SummaryBlock title="今月のまとめ" summary={geminiSummary.thisMonth} />
-              <SummaryBlock title="今年のまとめ" summary={geminiSummary.thisYear} />
-              <SummaryBlock title="四半期まとめ (1-3月)" summary={geminiSummary.q1} />
-              <SummaryBlock title="四半期まとめ (4-6月)" summary={geminiSummary.q2} />
-              <SummaryBlock title="四半期まとめ (7-9月)" summary={geminiSummary.q3} />
-              <SummaryBlock title="四半期まとめ (10-12月)" summary={geminiSummary.q4} />
+          {/* lg未満の場合はHeaderMobile、それ以上はHeaderを表示 */}
+          {isMobile ? (
+            <HeaderMobile
+              isLoggedIn={true}
+              isSidebarVisible={isSidebarVisible}
+              setSidebarVisible={setSidebarVisible}
+            />
+          ) : (
+            <Header isLoggedIn={true} />
+          )}
+          <div className="px-4">
+            <SummaryBlock />
+            <Toolbar editor={editor} />
+            <EditorContent
+              editor={editor}
+              className="prose h-[80vh] overflow-y-auto focus:outline-none"
+            />
+            <div
+              id="floating-toolbar"
+              ref={floatingToolbarRef}
+              className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md "
+            >
+              <Floating editor={editor} />
             </div>
-          </section>
-          <Toolbar editor={editor} />
-          <EditorContent
-            editor={editor}
-            className="prose h-[80vh] overflow-y-auto focus:outline-none"
-          />
-          <div 
-            id="floating-toolbar" 
-            ref={floatingToolbarRef} 
-            className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md "
-          >
-            <Floating editor={editor} />
           </div>
         </main>
       </div>
