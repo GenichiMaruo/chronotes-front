@@ -149,7 +149,6 @@ export default function Chronotes() {
                             : ''}
                         </p>
                       </div>
-                      <span className="text-xs text-gray-500">{memo.charCount || 0}文字</span> {/* 文字数を表示 */}
                     </div>
                   </div>
                 ))}

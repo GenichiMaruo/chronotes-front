@@ -89,12 +89,6 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
     const graphemes = splitter(spaceRemoved); // グラフェームで分割
     const count = graphemes.length; // グラフェームの数をカウント
   
-    // メモの文字数を更新
-    const updatedMemo = { ...selectedMemo, charCount: count };
-    const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo));
-
-    setMemos(updatedMemos);
-    localStorage.setItem('memos', JSON.stringify(updatedMemos)); // ローカルストレージにも保存
     setCharCount(count);
   };
 
