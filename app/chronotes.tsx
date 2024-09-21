@@ -77,10 +77,7 @@ export default function Chronotes() {
     const savedMemos = localStorage.getItem('memos')
     return savedMemos
       ? JSON.parse(savedMemos)
-      : [
-        { id: 1, date: "2024-09-21T12:34:56+09:00", title: 'First Entry', content: 'This is my first diary entry.' },
-        { id: 2, date: "2024-09-21T12:34:56+09:00", title: 'Ideas', content: 'Some ideas for my next project.' },
-      ]
+      : []
   })
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
@@ -133,16 +130,19 @@ export default function Chronotes() {
         },
       }),
     ],
-    content: selectedMemo.content,
+    // 編集内容の更新時の処理
     onUpdate: ({ editor }) => {
       const content = editor.getHTML()
       const firstLine = editor.getText().split('\n')[0] || 'Untitled Entry'
 
-      setSelectedMemo((prev) => ({ ...prev, content, title: firstLine }))
+      // コンテンツが空の場合の処理
+      const displayedContent = content === '' ? 'no contents' : content
+
+      setSelectedMemo((prev) => ({ ...prev, content: displayedContent, title: firstLine }))
 
       setMemos((prevMemos) => {
         const updatedMemos = prevMemos.map((memo) =>
-          memo.id === selectedMemo.id ? { ...selectedMemo, content, title: firstLine } : memo
+          memo.id === selectedMemo.id ? { ...selectedMemo, content: displayedContent, title: firstLine } : memo
         )
         localStorage.setItem('memos', JSON.stringify(updatedMemos))
         return updatedMemos
@@ -162,57 +162,80 @@ export default function Chronotes() {
     // MutationObserverを使ってテーマの変更を監視
     const observer = new MutationObserver(updateDarkMode)
     observer.observe(document.documentElement, { attributes: true })
+    // 画面初回表示時にデータを消去し、APIから再取得
+    const initializeData = async () => {
+      localStorage.removeItem('memos')  // ローカルストレージをクリア
+      setMemos([])  // メモリ上のデータもクリア
+    }
+    initializeData()
 
     return () => observer.disconnect()
   }, [])
 
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
+  const [date, setDate] = React.useState<Date | undefined>(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Set the time to 00:00:00
+    return now;
+  });
 
   useEffect(() => {
-    if (date) {
-      const fetchData = async () => {
-        const token = getCookie('token') // トークン取得
-        if (!token) return // トークンがない場合は処理しない
+    const fetchMemoData = async (selectedDate: Date) => {
+      console.log('fetchMemoData', selectedDate);
+      // 選択された日付がローカルにあるか確認
+      const savedMemos = localStorage.getItem('memos');
+      const parsedMemos: Memo[] = savedMemos ? JSON.parse(savedMemos) : [];
+      const existingMemo = parsedMemos.find(memo => memo.date === selectedDate.toISOString());
 
-        const isoDate = date.toISOString() // 日付をISO 8601形式に変換
-        const encodedDate = encodeURIComponent(isoDate) // エンコード
+      if (existingMemo) {
+        // 既存のメモをセット
+        setSelectedMemo(existingMemo);
+        editor?.commands.setContent(existingMemo.content); // メモの内容をエディタにセット
+      } else {
+        // 存在しない場合はAPIから取得
+        const token = getCookie('token');
+        if (!token) return;
 
         try {
-          const response = await fetch(`${apiUrl}/notes/note?date=${encodedDate}`, {
+          const response = await fetch(`${apiUrl}/fake`, { // 本来は正しいAPIのURLに変更
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${token}`, // トークンをヘッダーに追加
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
-          })
+          });
 
           if (response.ok) {
-            const data = await response.json()
+            const data = await response.json();
 
-            // 取得したデータをMemo形式に変換
+            // 新しいメモを作成
             const newMemo: Memo = {
-              id: Date.now(), // 仮のIDとして現在時刻を使用
-              title: new Date(data.data).toLocaleDateString(), // 日付をタイトルに
-              content: data.content,
-              date: ''
-            }
+              id: selectedDate.getTime(), // 日付をIDとして使用
+              date: selectedDate.toISOString(), // 日付をISO形式で保存
+              title: selectedDate.toLocaleDateString(), // 日付をタイトルに
+              content: data.content || 'no contents', // コンテンツが空の場合は"no contents"
+            };
 
-            setMemos((prevMemos) => {
-              const updatedMemos = [...prevMemos, newMemo]
-              localStorage.setItem('memos', JSON.stringify(updatedMemos)) // ローカルストレージに保存
-              return updatedMemos
-            })
+            // 新しいメモをローカルストレージとstateに保存
+            const updatedMemos = [...parsedMemos, newMemo];
+            setMemos(updatedMemos);
+            localStorage.setItem('memos', JSON.stringify(updatedMemos));
+
+            // 新しいメモをエディタに表示
+            setSelectedMemo(newMemo);
+            editor?.commands.setContent(newMemo.content);
           } else {
-            console.error('Failed to fetch notes')
+            console.error('Failed to fetch notes');
           }
         } catch (error) {
-          console.error('Error fetching notes:', error)
+          console.error('Error fetching notes:', error);
         }
       }
+    };
 
-      fetchData()
+    if (date) {
+      fetchMemoData(date); // 選択された日付でデータを取得
     }
-  }, [date])
+  }, [date, editor]);
 
   useEffect(() => {
     if (editor) {
@@ -261,17 +284,14 @@ export default function Chronotes() {
               {memos.map((memo) => (
                 <div
                   key={memo.id}
-                  className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
-                    }`}
+                  className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'}`}
+                  onClick={() => {
+                    setSelectedMemo(memo);
+                    editor?.commands.setContent(memo.content); // ローカルのメモデータをエディタにセット
+                  }}
                 >
                   <div className="flex justify-between items-center w-auto">
-                    <div
-                      onClick={() => {
-                        setSelectedMemo(memo);
-                        editor?.commands.setContent(memo.content);
-                      }}
-                      className="truncate"
-                    >
+                    <div className="truncate">
                       <h3 className="font-medium truncate">{memo.title}</h3>
                       <p className="text-sm text-muted-foreground truncate">
                         {typeof memo.content === 'string'
