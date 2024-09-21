@@ -36,6 +36,7 @@ import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import FloatingMenu from '@tiptap/extension-floating-menu'
 import { Calendar } from '@/components/ui/calendar'
+import HeaderMobile from '@/components/header-mobile'
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -267,35 +268,31 @@ export default function Chronotes() {
         </aside>
 
         {/* メインエリア */}
-        <main className="flex-1 mx">
-          <Header isLoggedIn={true} />
-          {/* Geminiのノートまとめ表示エリア */}
-          <section className="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">Geminiによるノートのまとめ</h2>
-
-            {/* 各期間のまとめを表示 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <SummaryBlock title="今日のまとめ" summary={geminiSummary.today} />
-              <SummaryBlock title="今週のまとめ" summary={geminiSummary.thisWeek} />
-              <SummaryBlock title="今月のまとめ" summary={geminiSummary.thisMonth} />
-              <SummaryBlock title="今年のまとめ" summary={geminiSummary.thisYear} />
-              <SummaryBlock title="四半期まとめ (1-3月)" summary={geminiSummary.q1} />
-              <SummaryBlock title="四半期まとめ (4-6月)" summary={geminiSummary.q2} />
-              <SummaryBlock title="四半期まとめ (7-9月)" summary={geminiSummary.q3} />
-              <SummaryBlock title="四半期まとめ (10-12月)" summary={geminiSummary.q4} />
+        <main className="flex-1">
+          {/* lg未満の場合はHeaderMobile、それ以上はHeaderを表示 */}
+          {isMobile ? (
+            <HeaderMobile
+              isLoggedIn={true}
+              isSidebarVisible={isSidebarVisible}
+              setSidebarVisible={setSidebarVisible}
+            />
+          ) : (
+            <Header isLoggedIn={true} />
+          )}
+          <div className="px-4">
+            <SummaryBlock />
+            <Toolbar editor={editor} />
+            <EditorContent
+              editor={editor}
+              className="prose h-[80vh] overflow-y-auto focus:outline-none"
+            />
+            <div
+              id="floating-toolbar"
+              ref={floatingToolbarRef}
+              className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md "
+            >
+              <Floating editor={editor} />
             </div>
-          </section>
-          <Toolbar editor={editor} />
-          <EditorContent
-            editor={editor}
-            className="prose h-[80vh] overflow-y-auto p-[1rem] focus:outline-none"
-          />
-          <div 
-            id="floating-toolbar" 
-            ref={floatingToolbarRef} 
-            className="absolute hidden bg-white dark:bg-gray-700 z-10 border border-gray-300 rounded shadow-md "
-          >
-            <Floating editor={editor} />
           </div>
         </main>
       </div>
