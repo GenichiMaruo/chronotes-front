@@ -44,7 +44,7 @@ export default function HeaderMobile({ isLoggedIn, isSidebarVisible, setSidebarV
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="cursor-pointer">
-                <AvatarImage src="/placeholder-image?width=200&height=200&background=rgb(41, 122, 137)&color=white" alt="User" />
+                <AvatarImage src="/icon.png" alt="User" />
                 <AvatarFallback>UN</AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
