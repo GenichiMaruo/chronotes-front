@@ -79,20 +79,17 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
   })
 
   const countCharacters = (content: string) => {
+    const splitter = require('graphemesplit');
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/html');
-    const paragraphs = doc.querySelectorAll('p');
-    const codeBlocks = doc.querySelectorAll('code');
-    
-    let count = 0;
-
-    paragraphs.forEach(p => {
-      count += p.textContent ? p.textContent.length : 0;
-    });
-    codeBlocks.forEach(code => {
-      count += code.textContent ? code.textContent.length : 0;
-    });
-
+    const textContent = doc.body.textContent || ''; // タグを除いたテキストを取得
+    const replaced = textContent.replace(/\n/g, ''); // 改行文字を削除
+    const spaceRemoved = replaced.replace(/\s/g, ''); // 空白文字を削除
+  
+    const graphemes = splitter(spaceRemoved); // グラフェームで分割
+    console.log(graphemes);
+    const count = graphemes.length; // グラフェームの数をカウント
+  
     setCharCount(count);
   };
 
