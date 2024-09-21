@@ -201,7 +201,7 @@ export default function Chronotes() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー（エントリーリスト） */}
         <aside
-          className={`lg:relative lg:block absolute top-0 left-0 h-full w-[30vw] max-w-[300px] min-w-[300px] transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          className={`lg:relative lg:block absolute top-0 left-0 h-full w-[30vw] max-w-[300px] transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
             } lg:translate-x-0`}
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
         >
@@ -214,37 +214,39 @@ export default function Chronotes() {
           <Button onClick={createNewMemo} className="mb-4">
             <PlusCircle className="mr-2 h-4 w-4" /> New Entry
           </Button>
-          <ScrollArea className="flex-1">
-            {memos.map((memo) => (
-              <div
-                key={memo.id}
-                className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
-                  }`}
-              >
-                <div className="flex justify-between items-center max-w-full">
-                  <div
-                    onClick={() => {
-                      setSelectedMemo(memo);
-                      editor?.commands.setContent(memo.content);
-                    }}
-                  >
-                    <h3 className="font-medium">{memo.title}</h3>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {typeof memo.content === 'string'
-                        ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
-                        : ''}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => deleteMemo(memo.id)}
-                  variant="ghost"
-                  className="ml-2 text-red-500 hover:bg-red-100 hidden group-hover:block"
+          <ScrollArea className="flex-1 h-[50vh]">
+            <div className="w-[30vw] max-w-[250px] truncate">
+              {memos.map((memo) => (
+                <div
+                  key={memo.id}
+                  className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'
+                    }`}
                 >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <div className="flex justify-between items-center max-w-full">
+                    <div
+                      onClick={() => {
+                        setSelectedMemo(memo);
+                        editor?.commands.setContent(memo.content);
+                      }}
+                    >
+                      <h3 className="font-medium truncate">{memo.title}</h3>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {typeof memo.content === 'string'
+                          ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
+                          : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => deleteMemo(memo.id)}
+                    variant="ghost"
+                    className="ml-2 text-red-500 hover:bg-red-100 hidden group-hover:block"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </ScrollArea>
         </aside>
 
