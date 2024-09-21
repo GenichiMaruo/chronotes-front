@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
+import { ApiProvider } from "@/components/api-provider";
 
 const title = "Chronotes";
 const description = "Chronotes";
@@ -25,14 +26,16 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <ApiProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </ApiProvider>
       </body>
     </html>
   );
