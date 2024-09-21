@@ -24,6 +24,7 @@ import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
 import { Memo } from '@/lib/types'
 import Toolbar from '@/components/toolbar'
+import Link from "@tiptap/extension-link";
 
 const lowlight = createLowlight()
 lowlight.register('html', html)
@@ -65,6 +66,7 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
         nested: true,
       }),
       FloatingMenu,
+      Link,
     ],
     content: selectedMemo.content || '',
     onUpdate: ({ editor }) => {
