@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation"; // app routerではuseRouterではなくuseNavigationを使用
-import { setCookie } from "@/lib/cookie"; // トークンを保存するための関数
 import Link from "next/link";
+import { useAuth } from "@/components/auth-provider"; // useAuthフックをインポート
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,6 +14,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { apiUrl, setToken } = useAuth(); // useAuthフックを使用してトークンをセット
 
   const handleLogin = async () => {
     setLoading(true);
@@ -28,7 +29,7 @@ export default function Login() {
 
     try {
       // APIリクエストを送信
-      const response = await fetch("/api/login", {
+      const response = await fetch(`${apiUrl}/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,8 +43,8 @@ export default function Login() {
 
       const { token } = await response.json();
 
-      // トークンをCookieに保存
-      setCookie("token", token, 7); // トークンを7日間保持
+      // トークンをAuthProviderで管理
+      setToken(token); // トークンをグローバルステートにセット
 
       // ログイン後のリダイレクト
       router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
@@ -53,10 +54,6 @@ export default function Login() {
       } else {
         setError("ログインに失敗しました");
       }
-
-      // debug用にログイン失敗でもダミーのトークンをセットしてログイン後の画面に遷移する
-      setCookie("token", "dummy", 7);
-      router.push("/");
     } finally {
       setLoading(false);
     }
