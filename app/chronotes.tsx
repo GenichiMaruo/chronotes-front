@@ -167,7 +167,8 @@ export default function Chronotes() {
           ) : (
             <Header isLoggedIn={true} />
           )}
-          <div className="px-4 flex flex-col h-[90vh]">
+          {/* メインエリアのコンテンツ 最大幅60 */}
+          <div className="px-4 flex flex-col h-[90vh] max-w-[60rem] mx-auto">
             <div className="flex-none">
               <SummaryBlock />
             </div>
