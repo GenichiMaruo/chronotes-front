@@ -81,7 +81,9 @@ export default function Chronotes() {
         if (!token) return;
 
         try {
-          const response = await fetch(`${apiUrl}/fake`, {
+          // 2024-09-21T12:34:56+09:00これをencodeURIComponentでエンコードして送信する
+          const date = encodeURIComponent(selectedDate.toISOString());
+          const response = await fetch(`${apiUrl}/notes/note?date=${date}`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
