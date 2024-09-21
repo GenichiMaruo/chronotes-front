@@ -281,27 +281,29 @@ export default function Chronotes() {
           />
           <ScrollArea className="flex-1 h-[50vh] my-10">
             <div className="w-[250px] truncate">
-              {memos.map((memo) => (
-                <div
-                  key={memo.id}
-                  className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'}`}
-                  onClick={() => {
-                    setSelectedMemo(memo);
-                    editor?.commands.setContent(memo.content); // ローカルのメモデータをエディタにセット
-                  }}
-                >
-                  <div className="flex justify-between items-center w-auto">
-                    <div className="truncate">
-                      <h3 className="font-medium truncate">{memo.title}</h3>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {typeof memo.content === 'string'
-                          ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
-                          : ''}
-                      </p>
+              {memos
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // 日付の新しい順にソート
+                .map((memo) => (
+                  <div
+                    key={memo.id}
+                    className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'}`}
+                    onClick={() => {
+                      setSelectedMemo(memo);
+                      editor?.commands.setContent(memo.content); // ローカルのメモデータをエディタにセット
+                    }}
+                  >
+                    <div className="flex justify-between items-center w-auto">
+                      <div className="truncate">
+                        <h3 className="font-medium truncate">{memo.title}</h3>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {typeof memo.content === 'string'
+                            ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
+                            : ''}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </ScrollArea>
         </aside>
