@@ -54,6 +54,23 @@ interface Memo {
   content: string
 }
 
+// カスタムフック：画面サイズがlg以下かどうかを判定
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [matches, query]);
+
+  return matches;
+}
+
 export default function Chronotes() {
   const [memos, setMemos] = useState<Memo[]>(() => {
     const savedMemos = localStorage.getItem('memos')
@@ -67,17 +84,8 @@ export default function Chronotes() {
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
   const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
-  const [geminiSummary] = useState({
-    today: 'aaaaa',
-    thisWeek: 'aaaaaaa',
-    thisMonth: 'aaaaaaaaaa',
-    thisYear: 'aaaaaaaaa',
-    q1: 'aaaaa',
-    q2: 'aaaaaaa',
-    q3: 'aaaaaaaaa',
-    q4: 'aaaaaaaaaa',
-  })
   const floatingToolbarRef = useRef<HTMLDivElement>(null)
+  const isMobile = useMediaQuery('(max-width: 1024px)');
 
   const editor = useEditor({
     extensions: [
@@ -156,26 +164,6 @@ export default function Chronotes() {
     return () => observer.disconnect()
   }, [])
 
-  // 新しいメモを作成
-  const createNewMemo = () => {
-    const newMemo: Memo = { id: Date.now(), title: 'New Entry', content: '' }
-    setMemos([newMemo, ...memos])
-    setSelectedMemo(newMemo)
-    editor?.commands.setContent('')
-  }
-
-  // メモを削除
-  const deleteMemo = (id: number) => {
-    const updatedMemos = memos.filter((memo) => memo.id !== id)
-    setMemos(updatedMemos)
-    localStorage.setItem('memos', JSON.stringify(updatedMemos))
-
-    if (selectedMemo.id === id) {
-      setSelectedMemo(updatedMemos[0] || { id: 0, title: '', content: '' })
-      editor?.commands.setContent(updatedMemos[0]?.content || '')
-    }
-  }
-
   const [date, setDate] = React.useState<Date | undefined>(new Date())
 
   useEffect(() => {
@@ -207,19 +195,11 @@ export default function Chronotes() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* サイドバーの表示非表示ボタン（小さい画面用） */}
-      <Button
-        onClick={() => setSidebarVisible(!isSidebarVisible)}
-        className="absolute top-4 left-4 block lg:hidden p-2 z-50"  // スマホでの表示位置を改善
-      >
-        {isSidebarVisible ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
-      </Button>
-
       <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー（エントリーリスト） */}
         <aside
-          className={`lg:relative lg:block absolute top-0 left-0 h-full w-[30vw] max-w-[300px] transition-transform duration-300 border-r p-4 flex flex-col z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
-            } lg:translate-x-0`}
+          className={`w-[300px] lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0`}
           style={{ backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)' }} // ダークモードの背景
         >
           <Calendar
@@ -228,9 +208,6 @@ export default function Chronotes() {
             onSelect={setDate}
             className="rounded-md border flex justify-center"
           />
-          <Button onClick={createNewMemo} className="mb-4">
-            <PlusCircle className="mr-2 h-4 w-4" /> New Entry
-          </Button>
           <ScrollArea className="flex-1 h-[50vh]">
             <div className="w-[30vw] max-w-[250px] truncate">
               {memos.map((memo) => (
@@ -254,13 +231,6 @@ export default function Chronotes() {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    onClick={() => deleteMemo(memo.id)}
-                    variant="ghost"
-                    className="ml-2 text-red-500 hover:bg-red-100 hidden group-hover:block"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
                 </div>
               ))}
             </div>
