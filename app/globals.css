@@ -284,3 +284,9 @@ body {
 .tiptap a:visited {
   color: purple;
 }
+
+/* チェックされているアイテムに横線を追加 */
+[data-checked="true"] {
+  text-decoration: line-through;
+  color: #6b7280; /* 色をグレーに変更 */
+}
