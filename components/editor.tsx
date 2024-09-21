@@ -38,7 +38,8 @@ type EditorProps = {
 }
 
 export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
-  const [charCount, setCharCount] = useState(0); // 文字数を管理するステート
+  const [charCount, setCharCount] = useState(selectedMemo.charCount || 0); // 初期値をメモの文字数に設定
+  
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -67,16 +68,20 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
     ],
     content: selectedMemo.content || '',
     onUpdate: ({ editor }) => {
-      const content = editor.getHTML()
-      const updatedMemo = { ...selectedMemo, content }
-      const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo))
-      setMemos(updatedMemos)
-      localStorage.setItem('memos', JSON.stringify(updatedMemos))
+      const content = editor.getHTML();
+      
+      // 文字数をカウント
+      const newCharCount = countCharacters(content);
+      setCharCount(newCharCount);
 
-      // 文字数カウントを更新
-      countCharacters(content);
+      // selectedMemo に文字数を保存
+      const updatedMemo = { ...selectedMemo, content, charCount: newCharCount };
+      const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo));
+      
+      setMemos(updatedMemos);
+      localStorage.setItem('memos', JSON.stringify(updatedMemos));
     },
-  })
+  });
 
   const countCharacters = (content: string) => {
     const splitter = require('graphemesplit');
@@ -85,17 +90,22 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
     const textContent = doc.body.textContent || ''; // タグを除いたテキストを取得
     const replaced = textContent.replace(/\n/g, ''); // 改行文字を削除
     const spaceRemoved = replaced.replace(/\s/g, ''); // 空白文字を削除
-  
+
     const graphemes = splitter(spaceRemoved); // グラフェームで分割
-    const count = graphemes.length; // グラフェームの数をカウント
-  
-    setCharCount(count);
+    return graphemes.length; // グラフェームの数をカウント
   };
 
   useEffect(() => {
     if (editor) {
       editor.commands.setContent(selectedMemo.content || '');
-      countCharacters(selectedMemo.content || ''); // 初期カウント
+      const initialCharCount = countCharacters(selectedMemo.content || '');
+      setCharCount(initialCharCount); // 初期文字数を設定
+  
+      // selectedMemo に文字数を保存
+      const updatedMemo = { ...selectedMemo, charCount: initialCharCount };
+      const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo));
+      setMemos(updatedMemos);
+      localStorage.setItem('memos', JSON.stringify(updatedMemos));
     }
   }, [selectedMemo, editor]);
 
@@ -110,5 +120,5 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
         文字数: {charCount}
       </div>
     </>
-  )
+  );
 }
