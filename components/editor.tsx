@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import StarterKit from '@tiptap/starter-kit'
@@ -38,6 +38,7 @@ type EditorProps = {
 }
 
 export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
+  const [charCount, setCharCount] = useState(0); // 文字数を管理するステート
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -71,19 +72,47 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo))
       setMemos(updatedMemos)
       localStorage.setItem('memos', JSON.stringify(updatedMemos))
+
+      // 文字数カウントを更新
+      countCharacters(content);
     },
   })
 
+  const countCharacters = (content: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+    const paragraphs = doc.querySelectorAll('p');
+    const codeBlocks = doc.querySelectorAll('code');
+    
+    let count = 0;
+
+    paragraphs.forEach(p => {
+      count += p.textContent ? p.textContent.length : 0;
+    });
+    codeBlocks.forEach(code => {
+      count += code.textContent ? code.textContent.length : 0;
+    });
+
+    setCharCount(count);
+  };
+
   useEffect(() => {
     if (editor) {
-      editor.commands.setContent(selectedMemo.content || '')
+      editor.commands.setContent(selectedMemo.content || '');
+      countCharacters(selectedMemo.content || ''); // 初期カウント
     }
-  }, [selectedMemo, editor])
+  }, [selectedMemo, editor]);
 
   return (
     <>
       {editor && <Toolbar editor={editor} />}
       <EditorContent editor={editor} className='p-5' />
+      <div
+        className="absolute top-0 right-0 p-2 bg-white shadow-md rounded"
+        style={{ zIndex: 10 }} // z-indexを設定して他の要素より上に表示
+      >
+        文字数: {charCount}
+      </div>
     </>
   )
 }
