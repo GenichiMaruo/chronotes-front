@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/components/auth-provider"; // useAuthフックをインポート
+import { useApiUrl } from "@/components/api-provider";
+import { setCookie } from "@/lib/cookie";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { apiUrl, setToken } = useAuth(); // useAuthフックを使用してトークンをセット
+  const apiUrl = useApiUrl();
 
   const handleSignup = async () => {
     setLoading(true);
@@ -51,9 +52,8 @@ export default function Signup() {
 
       const { token } = await response.json();
 
-      // トークンをAuthProviderで管理
-      setToken(token); // トークンをグローバルステートにセット
-
+      // トークンをCookieにセット
+      setCookie("token", token, 7); // トークンをCookieにセット
       // サインアップ後のリダイレクト
       router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
     } catch (error: unknown) {
@@ -68,6 +68,7 @@ export default function Signup() {
   };
 
   return (
+    
     <div className="flex flex-col h-screen">
       <header className="flex justify-between items-center p-4">
         <h1 className="text-2xl font-bold">

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation"; // app routerではuseRouterではなくuseNavigationを使用
 import Link from "next/link";
-import { useAuth } from "@/components/auth-provider"; // useAuthフックをインポート
+import { useApiUrl } from "@/components/api-provider";
+import { setCookie } from "@/lib/cookie";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { apiUrl, setToken } = useAuth(); // useAuthフックを使用してトークンをセット
+  const apiUrl = useApiUrl();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -37,17 +38,15 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        throw new Error("ログインに失敗しました");
+      if (response.ok) {
+        const { token } = await response.json();
+        // トークンをCookieにセット
+        setCookie("token", token, 7); // トークンをCookieにセット
+        // ログイン後のリダイレクト
+        router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
       }
+      throw new Error("ログインに失敗しました");
 
-      const { token } = await response.json();
-
-      // トークンをAuthProviderで管理
-      setToken(token); // トークンをグローバルステートにセット
-
-      // ログイン後のリダイレクト
-      router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
