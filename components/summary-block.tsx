@@ -5,32 +5,82 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MinimizeIcon, MaximizeIcon } from "lucide-react"
+import { useApiUrl } from "@/components/api-provider"
+import { getCookie } from "@/lib/cookie"
 
-// Simulated API call
-const fetchSummaries = async () => {
-  // In a real scenario, this would be an actual API call
-  await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate network delay
-  return {
-    today: "Today's summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    week: "This week's summary: Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    month: "This month's summary: Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-    quarter: "Quarterly summary: Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
-    year: "Yearly summary: Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia."
+// API fetch functions for each summary
+const fetchSummary = async (period: string) => {
+  const apiUrl = useApiUrl()
+  let endpoint = ""
+  switch (period) {
+    case "today":
+      endpoint = `${apiUrl}/analytics/daily`
+      break
+    case "week":
+      endpoint = `${apiUrl}/analytics/weekly`
+      break
+    case "month":
+      endpoint = `${apiUrl}/analytics/monthly`
+      break
+    case "quarter":
+      endpoint = `${apiUrl}/analytics/quarterly`
+      break
+    case "year":
+      endpoint = `${apiUrl}/analytics/yearly`
+      break
+    default:
+      throw new Error("Invalid period")
+  }
+
+  const token = getCookie("token")
+  try {
+    const response = await fetch(endpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!response.ok) {
+      throw new Error("Failed to fetch summary")
+    }
+    const data = await response.json()
+    return data.summary
+  } catch (error) {
+    console.error("Error fetching summary:", error)
+    return "Failed to fetch summary"
   }
 }
 
 export default function SummaryBlock() {
-  const [summaries, setSummaries] = useState<Record<string, string> | null>(null)
+  const [summaries, setSummaries] = useState<Record<string, string>>({
+    today: "",
+    week: "",
+    month: "",
+    quarter: "",
+    year: "",
+  })
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({
+    today: true,
+    week: false,
+    month: false,
+    quarter: false,
+    year: false,
+  })
   const [isMinimized, setIsMinimized] = useState(false)
   const [activeTab, setActiveTab] = useState("today")
 
+  // Fetch summaries when the active tab changes
   useEffect(() => {
-    fetchSummaries().then(setSummaries)
-  }, [])
+    const loadSummary = async (period: string) => {
+      setLoadingStates(prev => ({ ...prev, [period]: true }))
+      const summary = await fetchSummary(period)
+      setSummaries(prev => ({ ...prev, [period]: summary }))
+      setLoadingStates(prev => ({ ...prev, [period]: false }))
+    }
 
-  if (!summaries) {
-    return <div className="w-full text-center">Loading summaries...</div>
-  }
+    if (!summaries[activeTab]) {
+      loadSummary(activeTab)
+    }
+  }, [activeTab])
 
   return (
     <Card className={`w-full transition-all duration-300 h-auto`}>
@@ -55,11 +105,15 @@ export default function SummaryBlock() {
               <TabsTrigger value="quarter">Quarter</TabsTrigger>
               <TabsTrigger value="year">Year</TabsTrigger>
             </TabsList>
-            {Object.entries(summaries).map(([period, summary]) => (
+            {["today", "week", "month", "quarter", "year"].map((period) => (
               <TabsContent key={period} value={period} className="mt-4">
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm">{summary}</p>
+                    {loadingStates[period] ? (
+                      <p className="text-sm">Loading {period} summary...</p>
+                    ) : (
+                      <p className="text-sm">{summaries[period]}</p>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
