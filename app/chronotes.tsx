@@ -22,10 +22,8 @@ import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { all, createLowlight } from 'lowlight'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 // eslint-disable-next-line
 import CodeBlockComponent from '@/components/code-block'
 import Header from "@/components/header";
