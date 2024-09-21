@@ -10,12 +10,14 @@ interface LowlightExtension {
   };
 }
 
-export default function CodeBlockComponent({
-  node,
+export default function CodeBlock({
+  node: {
+    attrs: { language: defaultLanguage },
+  },
   updateAttributes,
   extension,
 }: {
-  node: { attrs: { language?: string } }; // languageをオプショナルに
+  node: { attrs: { language: string } };
   updateAttributes: (attributes: { language: string }) => void;
   extension: LowlightExtension;
 }) {
@@ -32,7 +34,8 @@ export default function CodeBlockComponent({
 
   return (
     <NodeViewWrapper
-      className={`relative code-block group p-4 rounded-md bg-gray-100 dark:bg-gray-800 text-sm leading-6 ${isClicked ? 'border border-gray-300 dark:border-gray-700' : ''}`}
+      className={`relative code-block group p-4 rounded-md bg-gray-100 dark:bg-gray-800 text-sm leading-6 ${isClicked ? 'border border-gray-300 dark:border-gray-700' : ''
+        }`}
       onClick={() => setIsClicked(true)}
       onBlur={() => setIsClicked(false)}
     >
@@ -48,11 +51,10 @@ export default function CodeBlockComponent({
 
           <select
             contentEditable={false}
-            value={node.attrs.language || ""} // languageがない場合に対応
+            defaultValue={defaultLanguage}
             onChange={(event) => updateAttributes({ language: event.target.value })}
             className="text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 shadow-sm focus:ring focus:ring-blue-200 dark:focus:ring-blue-800"
           >
-            console.log(value);
             <option value="null">auto</option>
             <option disabled>—</option>
             {extension.options.lowlight.listLanguages().map((lang: string) => (
