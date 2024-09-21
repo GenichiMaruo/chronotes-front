@@ -25,6 +25,7 @@ import html from 'highlight.js/lib/languages/xml'
 import { Memo } from '@/lib/types'
 import Toolbar from '@/components/toolbar'
 import Link from "@tiptap/extension-link";
+import GraphemeSplitter from 'grapheme-splitter'
 
 const lowlight = createLowlight()
 lowlight.register('html', html)
@@ -86,14 +87,14 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
   });
 
   const countCharacters = (content: string) => {
-    const splitter = require('graphemesplit');
+    const splitter = new GraphemeSplitter();
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/html');
     const textContent = doc.body.textContent || ''; // タグを除いたテキストを取得
     const replaced = textContent.replace(/\n/g, ''); // 改行文字を削除
     const spaceRemoved = replaced.replace(/\s/g, ''); // 空白文字を削除
 
-    const graphemes = splitter(spaceRemoved); // グラフェームで分割
+    const graphemes = splitter.splitGraphemes(spaceRemoved); // グラフェームで分割
     return graphemes.length; // グラフェームの数をカウント
   };
 
