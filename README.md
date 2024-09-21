@@ -1,7 +1,7 @@
 # Chronotes
 
 > [!NOTE]
-> バックエンドのリポジトリは [yashikota/chronotes](https://github.com/GenichiMaruo/yashikota/chronotes) にあります。  
+> バックエンドのリポジトリは [yashikota/chronotes](https://github.com/yashikota/chronotes) にあります。  
 
 ## Development
 
