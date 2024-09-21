@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react'
+import { useEditor, EditorContent } from '@tiptap/react'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -23,9 +23,9 @@ import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
 import Placeholder from '@tiptap/extension-placeholder'
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { all, createLowlight } from 'lowlight'
+import { common, createLowlight } from 'lowlight'
 // eslint-disable-next-line
-import CodeBlockComponent from '@/components/code-block'
+// import CodeBlock from '@/components/code-block'
 import Header from "@/components/header";
 import SummaryBlock from "@/components/summary-block"; // Add this line to import SummaryBlock
 import Toolbar from './toolbar'
@@ -37,7 +37,7 @@ import { Calendar } from '@/components/ui/calendar'
 import HeaderMobile from '@/components/header-mobile'
 
 // create a lowlight instance
-const lowlight = createLowlight(all)
+const lowlight = createLowlight(common)
 
 // you can also register individual languages
 lowlight.register('html', html)
@@ -101,11 +101,7 @@ export default function Chronotes() {
       Paragraph,
       Text,
       TextStyle,
-      CodeBlockLowlight.extend({
-        addNodeView() {
-          return ReactNodeViewRenderer((props) => <CodeBlockComponent {...props} node={{ ...props.node, attrs: { ...props.node.attrs, language: props.node.attrs.language || 'plaintext' } }} />)
-        },
-      }).configure({ lowlight }),
+      CodeBlockLowlight.configure({ lowlight }),
       Color.configure({ types: [TextStyle.name, Highlight.name] }),
       Heading.configure({
         levels: [1, 2, 3, 4],
