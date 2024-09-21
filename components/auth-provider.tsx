@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 // トークン管理用のContextを作成
 interface AuthContextType {
@@ -17,10 +17,15 @@ const AuthContext = createContext<AuthContextType>({
 // プロバイダーを作成して、トークンの状態を提供
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const apiUrl = "https://chronotes.yashikota.com/api/v1";
-  const [token, setToken] = useState<string | null>(() => {
-    // 初期値をlocalStorageから取得
-    return localStorage.getItem("token");
-  });
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    // クライアント側でのみlocalStorageを使用
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+    }
+  }, []);
 
   // トークンを変更するときにlocalStorageにも保存
   const handleSetToken = (newToken: string | null) => {
