@@ -30,34 +30,35 @@ export default function Chronotes() {
   const [memos, setMemos] = useState<Memo[]>(() => {
     const savedMemos = localStorage.getItem('memos')
     return savedMemos ? JSON.parse(savedMemos) : []
-  })
+  });
 
-  const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
-  const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
+  const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0]);
+  const [isSidebarVisible, setSidebarVisible] = useState(true); // 表示非表示の管理
   const isMobile = useMediaQuery('(max-width: 1024px)');
-  const apiUrl = useApiUrl()
+  const apiUrl = useApiUrl();
 
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // ローディング状態の管理
+  const [loadingDate, setLoadingDate] = useState<Date | null>(null); // 現在読み込み中の日付
+
   useEffect(() => {
     const updateDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'))
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
     }
 
-    // 初期チェック
-    updateDarkMode()
+    updateDarkMode();
 
-    // MutationObserverを使ってテーマの変更を監視
-    const observer = new MutationObserver(updateDarkMode)
-    observer.observe(document.documentElement, { attributes: true })
-    // 画面初回表示時にデータを消去し、APIから再取得
+    const observer = new MutationObserver(updateDarkMode);
+    observer.observe(document.documentElement, { attributes: true });
+
     const initializeData = async () => {
-      localStorage.removeItem('memos')  // ローカルストレージをクリア
-      setMemos([])  // メモリ上のデータもクリア
+      localStorage.removeItem('memos');  // ローカルストレージをクリア
+      setMemos([]);  // メモリ上のデータもクリア
     }
-    initializeData()
+    initializeData();
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
   const [date, setDate] = React.useState<Date | undefined>(() => {
     const now = new Date();
@@ -67,7 +68,14 @@ export default function Chronotes() {
 
   useEffect(() => {
     const fetchMemoData = async (selectedDate: Date) => {
-      console.log('fetchMemoData', selectedDate);
+      // ローディング中であれば再びリクエストしない
+      if (loadingDate && loadingDate.getTime() === selectedDate.getTime()) {
+        return;
+      }
+
+      setIsLoading(true); // ローディング状態を開始
+      setLoadingDate(selectedDate);
+
       // 選択された日付がローカルにあるか確認
       const savedMemos = localStorage.getItem('memos');
       const parsedMemos: Memo[] = savedMemos ? JSON.parse(savedMemos) : [];
@@ -75,13 +83,13 @@ export default function Chronotes() {
 
       if (existingMemo) {
         setSelectedMemo(existingMemo);
+        setIsLoading(false); // ローディング終了
+        setLoadingDate(null);
       } else {
-        // 存在しない場合はAPIから取得
         const token = getCookie('token');
         if (!token) return;
 
         try {
-          // 2024-09-21T12:34:56+09:00これをencodeURIComponentでエンコードして送信する
           const date = encodeURIComponent(selectedDate.toISOString());
           const response = await fetch(`${apiUrl}/notes/note?date=${date}`, {
             method: 'GET',
@@ -109,6 +117,9 @@ export default function Chronotes() {
           }
         } catch (error) {
           console.error('Error fetching notes:', error);
+        } finally {
+          setIsLoading(false); // ローディング終了
+          setLoadingDate(null); // 読み込み中の日付をクリア
         }
       }
     };
@@ -175,12 +186,17 @@ export default function Chronotes() {
               <SummaryBlock />
             </div>
             <div className="flex-1 overflow-y-auto">
-              {/* Editorコンポーネントを使用 */}
-              <Editor selectedMemo={selectedMemo} setMemos={setMemos} memos={memos} />
+              {isLoading ? (
+                <div className="flex justify-center items-center h-full">
+                  <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mr-4"></div>
+                </div>
+              ) : (
+                <Editor selectedMemo={selectedMemo} setMemos={setMemos} memos={memos} />
+              )}
             </div>
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }

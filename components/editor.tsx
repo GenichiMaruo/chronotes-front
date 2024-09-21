@@ -64,7 +64,6 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       }),
       FloatingMenu,
     ],
-    content: selectedMemo.content || '',
     onUpdate: ({ editor }) => {
       const content = editor.getHTML()
       const updatedMemo = { ...selectedMemo, content }
@@ -75,7 +74,7 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
   })
 
   useEffect(() => {
-    if (editor) {
+    if (editor && selectedMemo) {
       editor.commands.setContent(selectedMemo.content || '')
     }
   }, [selectedMemo, editor])
