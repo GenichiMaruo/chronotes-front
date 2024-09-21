@@ -38,14 +38,14 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        const { token } = await response.json();
-        // トークンをCookieにセット
-        setCookie("token", token, 7); // トークンをCookieにセット
-        // ログイン後のリダイレクト
-        router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
+      if (!response.ok) {
+        throw new Error("ログインに失敗しました");
       }
-      throw new Error("ログインに失敗しました");
+      const { token } = await response.json();
+      // トークンをCookieにセット
+      setCookie("token", token, 7); // トークンをCookieにセット
+      // ログイン後のリダイレクト
+      router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
 
     } catch (error: unknown) {
       if (error instanceof Error) {
