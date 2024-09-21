@@ -87,9 +87,14 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
     const spaceRemoved = replaced.replace(/\s/g, ''); // 空白文字を削除
   
     const graphemes = splitter(spaceRemoved); // グラフェームで分割
-    console.log(graphemes);
     const count = graphemes.length; // グラフェームの数をカウント
   
+    // メモの文字数を更新
+    const updatedMemo = { ...selectedMemo, charCount: count };
+    const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo));
+
+    setMemos(updatedMemos);
+    localStorage.setItem('memos', JSON.stringify(updatedMemos)); // ローカルストレージにも保存
     setCharCount(count);
   };
 
