@@ -267,10 +267,10 @@ export default function Chronotes() {
         </aside>
 
         {/* メインエリア */}
-        <main className="flex-1 max-w-[]">
+        <main className="flex-1 mx">
           <Header isLoggedIn={true} />
           {/* Geminiのノートまとめ表示エリア */}
-          <section className="mt-6 p-4 bg-gray-100 rounded-lg shadow-lg">
+          <section className="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Geminiによるノートのまとめ</h2>
 
             {/* 各期間のまとめを表示 */}
