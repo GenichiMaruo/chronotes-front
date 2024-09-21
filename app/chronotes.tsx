@@ -272,7 +272,7 @@ export default function Chronotes() {
           <Toolbar editor={editor} />
           <EditorContent
             editor={editor}
-            className="prose h-[80vh] overflow-y-auto focus:outline-none"
+            className="prose h-[80vh] overflow-y-auto p-[1rem] focus:outline-none"
           />
           <div 
             id="floating-toolbar" 
