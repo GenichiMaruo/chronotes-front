@@ -5,16 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { setCookie } from "@/lib/cookie";
 import Link from "next/link";
+import { useAuth } from "@/components/auth-provider"; // useAuthフックをインポート
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUserName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { apiUrl, setToken } = useAuth(); // useAuthフックを使用してトークンをセット
 
   const handleSignup = async () => {
     setLoading(true);
@@ -35,12 +37,12 @@ export default function Signup() {
 
     try {
       // APIリクエストを送信
-      const response = await fetch("/api/signup", {
+      const response = await fetch(`${apiUrl}/users/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, username }),
       });
 
       if (!response.ok) {
@@ -49,8 +51,8 @@ export default function Signup() {
 
       const { token } = await response.json();
 
-      // トークンをCookieに保存
-      setCookie("token", token, 7); // トークンを7日間保持
+      // トークンをAuthProviderで管理
+      setToken(token); // トークンをグローバルステートにセット
 
       // サインアップ後のリダイレクト
       router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
@@ -76,6 +78,16 @@ export default function Signup() {
       <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
         <h1 className="text-2xl mb-4">サインアップ</h1>
         <div className="w-full max-w-md">
+          <Label htmlFor="userName">ユーザー名</Label>
+          <Input
+            id="userName"
+            type="text"
+            value={username}
+            onChange={(e) => setUserName(e.target.value)}
+            className="mb-4"
+            placeholder="ユーザー名を入力してください"
+          />
+
           <Label htmlFor="email">メールアドレス</Label>
           <Input
             id="email"
@@ -113,9 +125,9 @@ export default function Signup() {
           </Button>
 
           <div className="mt-4">
-            <a href="/login" className="text-blue-500">
+            <Link href="/login" className="text-blue-500">
               ログインはこちら
-            </a>
+            </Link>
           </div>
         </div>
       </main>
