@@ -35,6 +35,8 @@ import TaskList from '@tiptap/extension-task-list'
 import FloatingMenu from '@tiptap/extension-floating-menu'
 import { Calendar } from '@/components/ui/calendar'
 import HeaderMobile from '@/components/header-mobile'
+import { useApiUrl } from '@/components/api-provider'
+import { getCookie } from '@/lib/cookie'
 
 // create a lowlight instance
 const lowlight = createLowlight(all)
@@ -48,6 +50,7 @@ lowlight.register('ts', ts)
 // Define the Memo type
 interface Memo {
   id: number
+  date: string
   title: string
   content: string
 }
@@ -75,8 +78,8 @@ export default function Chronotes() {
     return savedMemos
       ? JSON.parse(savedMemos)
       : [
-        { id: 1, title: 'First Entry', content: 'This is my first diary entry.' },
-        { id: 2, title: 'Ideas', content: 'Some ideas for my next project.' },
+        { id: 1, date: "2024-09-21T12:34:56+09:00", title: 'First Entry', content: 'This is my first diary entry.' },
+        { id: 2, date: "2024-09-21T12:34:56+09:00", title: 'Ideas', content: 'Some ideas for my next project.' },
       ]
   })
 
@@ -84,6 +87,7 @@ export default function Chronotes() {
   const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
   const floatingToolbarRef = useRef<HTMLDivElement>(null)
   const isMobile = useMediaQuery('(max-width: 1024px)');
+  const apiUrl = useApiUrl()
 
   const editor = useEditor({
     extensions: [
@@ -163,6 +167,52 @@ export default function Chronotes() {
   }, [])
 
   const [date, setDate] = React.useState<Date | undefined>(new Date())
+
+  useEffect(() => {
+    if (date) {
+      const fetchData = async () => {
+        const token = getCookie('token') // トークン取得
+        if (!token) return // トークンがない場合は処理しない
+
+        const isoDate = date.toISOString() // 日付をISO 8601形式に変換
+        const encodedDate = encodeURIComponent(isoDate) // エンコード
+
+        try {
+          const response = await fetch(`${apiUrl}/notes/note?date=${encodedDate}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`, // トークンをヘッダーに追加
+              'Content-Type': 'application/json',
+            },
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+
+            // 取得したデータをMemo形式に変換
+            const newMemo: Memo = {
+              id: Date.now(), // 仮のIDとして現在時刻を使用
+              title: new Date(data.data).toLocaleDateString(), // 日付をタイトルに
+              content: data.content,
+              date: ''
+            }
+
+            setMemos((prevMemos) => {
+              const updatedMemos = [...prevMemos, newMemo]
+              localStorage.setItem('memos', JSON.stringify(updatedMemos)) // ローカルストレージに保存
+              return updatedMemos
+            })
+          } else {
+            console.error('Failed to fetch notes')
+          }
+        } catch (error) {
+          console.error('Error fetching notes:', error)
+        }
+      }
+
+      fetchData()
+    }
+  }, [date])
 
   useEffect(() => {
     if (editor) {
