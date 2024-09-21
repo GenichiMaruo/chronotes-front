@@ -144,6 +144,7 @@ export default function Chronotes() {
         return updatedMemos
       })
     },
+    immediatelyRender: false,
   })
 
   const [isDarkMode, setIsDarkMode] = useState(false)
