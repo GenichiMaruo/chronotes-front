@@ -94,7 +94,7 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
   // アカウント削除処理
   const handleDeleteAccount = async () => {
     try {
-      const response = await fetch(`${apiUrl}/users/delete`, {
+      const response = await fetch(`${apiUrl}/users/me`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${getCookie('token')}`,
