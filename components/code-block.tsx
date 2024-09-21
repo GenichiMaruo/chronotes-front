@@ -48,10 +48,11 @@ export default function CodeBlockComponent({
 
           <select
             contentEditable={false}
-            value={node.attrs.language || 'null'} // languageがない場合に対応
+            value={node.attrs.language || ""} // languageがない場合に対応
             onChange={(event) => updateAttributes({ language: event.target.value })}
             className="text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 shadow-sm focus:ring focus:ring-blue-200 dark:focus:ring-blue-800"
           >
+            console.log(value);
             <option value="null">auto</option>
             <option disabled>—</option>
             {extension.options.lowlight.listLanguages().map((lang: string) => (
