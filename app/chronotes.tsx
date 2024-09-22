@@ -114,7 +114,7 @@ export default function Chronotes() {
     if (date) {
       fetchMemoData(date);
     }
-  }, [date]);
+  }, [date, apiUrl, loadingDate]);
 
   return (
     <div className="flex flex-col w-full h-full">
