@@ -83,7 +83,6 @@ export default function SummaryBlock() {
     }
   }, [apiUrl]); // Add apiUrl as a dependency to useCallback
 
-  // Fetch summaries when the active tab changes
   useEffect(() => {
     const loadSummary = async (period: string) => {
       setLoadingStates(prev => ({ ...prev, [period]: true }));

@@ -88,6 +88,7 @@ export default function Chronotes() {
         setLoadingDates(loadingDates.filter(date => date.getTime() !== selectedDate.getTime())); // 読み込み中の日付を削除
       } else {
         setLoadingDates([...loadingDates, selectedDate]); // 読み込み中の日付を追加
+        // 存在しない場合はAPIから取得
         const token = getCookie('token');
         if (!token) return;
 
@@ -156,6 +157,7 @@ export default function Chronotes() {
             mode="single"
             selected={date}
             onSelect={setDate}
+            memoData={memos.map(memo => ({ date: memo.date, charcount: memo.content.length }))}
             className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? 'mt-20' : ''}`}
           />
           <ScrollArea className="flex-1 h-[50vh] my-10">
@@ -195,6 +197,7 @@ export default function Chronotes() {
                           })}
                         </div>
                       </div>
+                      <span className="text-xs text-gray-500">{memo.charCount || 0}文字</span> {/* 文字数を表示 */}
                     </div>
                   </div>
                 ))}

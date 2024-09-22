@@ -4,4 +4,5 @@ export type Memo = {
   title: string;
   content: string;
   tags: string[];
+  charCount?: number;
 }
