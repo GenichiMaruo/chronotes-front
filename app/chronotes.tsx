@@ -107,7 +107,10 @@ export default function Chronotes() {
               title: selectedDate.toLocaleDateString(),
               content: data.content || 'no contents',
             };
-
+            //contentの先頭と最後に""がついているので削除
+            newMemo.content = newMemo.content.slice(1, -1);
+            //contentの\nを削除
+            newMemo.content = newMemo.content.replace(/\\n/g, '\n');
             const updatedMemos = [...parsedMemos, newMemo];
             setMemos(updatedMemos);
             localStorage.setItem('memos', JSON.stringify(updatedMemos));
