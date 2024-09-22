@@ -5,9 +5,10 @@ import Header from "@/components/header";
 import HeaderMobile from '@/components/header-mobile'
 import SummaryBlock from "@/components/summary-block";
 import { useApiUrl } from '@/components/api-provider'
-import { getCookie } from '@/lib/cookie'
+import { getCookie, deleteCookie } from '@/lib/cookie'
 import Editor from '@/components/editor'
 import { Memo } from '@/lib/types'
+import router from 'next/router';
 
 // カスタムフック：画面サイズがlg以下かどうかを判定
 function useMediaQuery(query: string): boolean {
@@ -30,34 +31,39 @@ export default function Chronotes() {
   const [memos, setMemos] = useState<Memo[]>(() => {
     const savedMemos = localStorage.getItem('memos')
     return savedMemos ? JSON.parse(savedMemos) : []
-  })
+  });
 
-  const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0])
-  const [isSidebarVisible, setSidebarVisible] = useState(true) // 表示非表示の管理
+  const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0]);
+  const [isSidebarVisible, setSidebarVisible] = useState(true); // 表示非表示の管理
   const isMobile = useMediaQuery('(max-width: 1024px)');
-  const apiUrl = useApiUrl()
+  const apiUrl = useApiUrl();
 
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [loadingDates, setLoadingDates] = useState<Date[]>([]); // 読み込み中の日付リスト
+
+  // loadingDatesが変更されるたびにコンソールに出力
+  useEffect(() => {
+    console.log(loadingDates);
+  }, [loadingDates]);
+
   useEffect(() => {
     const updateDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'))
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
     }
 
-    // 初期チェック
-    updateDarkMode()
+    updateDarkMode();
 
-    // MutationObserverを使ってテーマの変更を監視
-    const observer = new MutationObserver(updateDarkMode)
-    observer.observe(document.documentElement, { attributes: true })
-    // 画面初回表示時にデータを消去し、APIから再取得
+    const observer = new MutationObserver(updateDarkMode);
+    observer.observe(document.documentElement, { attributes: true });
+
     const initializeData = async () => {
-      localStorage.removeItem('memos')  // ローカルストレージをクリア
-      setMemos([])  // メモリ上のデータもクリア
+      localStorage.removeItem('memos');  // ローカルストレージをクリア
+      setMemos([]);  // メモリ上のデータもクリア
     }
-    initializeData()
+    initializeData();
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
   const [date, setDate] = React.useState<Date | undefined>(() => {
     const now = new Date();
@@ -67,7 +73,11 @@ export default function Chronotes() {
 
   useEffect(() => {
     const fetchMemoData = async (selectedDate: Date) => {
-      console.log('fetchMemoData', selectedDate);
+      // ローディング中であれば再びリクエストしない
+      if (loadingDates.some(date => date.getTime() === selectedDate.getTime())) {
+        return;
+      }
+
       // 選択された日付がローカルにあるか確認
       const savedMemos = localStorage.getItem('memos');
       const parsedMemos: Memo[] = savedMemos ? JSON.parse(savedMemos) : [];
@@ -75,13 +85,16 @@ export default function Chronotes() {
 
       if (existingMemo) {
         setSelectedMemo(existingMemo);
+        setLoadingDates(loadingDates.filter(date => date.getTime() !== selectedDate.getTime())); // 読み込み中の日付を削除
       } else {
+        setLoadingDates([...loadingDates, selectedDate]); // 読み込み中の日付を追加
         // 存在しない場合はAPIから取得
         const token = getCookie('token');
         if (!token) return;
 
         try {
-          const response = await fetch(`${apiUrl}/fake`, {
+          const date = encodeURIComponent(selectedDate.toISOString());
+          const response = await fetch(`${apiUrl}/notes/note?date=${date}`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -91,22 +104,38 @@ export default function Chronotes() {
 
           if (response.ok) {
             const data = await response.json();
+            const tags = data.tags ? data.tags.split(',') : [];
             const newMemo: Memo = {
               id: selectedDate.getTime(),
               date: selectedDate.toISOString(),
-              title: selectedDate.toLocaleDateString(),
+              title: data.title || 'no title',
               content: data.content || 'no contents',
+              tags: tags || [],
             };
-
+            console.log(newMemo);
+            //contentの先頭と最後に""がついている場合は削除
+            if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
+              newMemo.content = newMemo.content.slice(1, -1);
+            }
+            //contentの\nを削除
+            newMemo.content = newMemo.content.replace(/\\n/g, '\n');
             const updatedMemos = [...parsedMemos, newMemo];
             setMemos(updatedMemos);
             localStorage.setItem('memos', JSON.stringify(updatedMemos));
             setSelectedMemo(newMemo);
+          } else if (response.status === 401) {
+            console.error('Unauthorized');
+            //logout
+            deleteCookie('token');
+            // ログイン画面へリダイレクト
+            router.push('/login');
           } else {
             console.error('Failed to fetch notes');
           }
         } catch (error) {
           console.error('Error fetching notes:', error);
+        } finally {
+          setLoadingDates(loadingDates.filter(date => date.getTime() !== selectedDate.getTime())); // 読み込み中の日付を削除
         }
       }
     };
@@ -114,7 +143,7 @@ export default function Chronotes() {
     if (date) {
       fetchMemoData(date);
     }
-  }, [date, apiUrl, loadingDate]);
+  }, [date, apiUrl]);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -146,9 +175,27 @@ export default function Chronotes() {
                         <h3 className="font-medium truncate">{memo.title}</h3>
                         <p className="text-sm text-muted-foreground truncate">
                           {typeof memo.content === 'string'
-                            ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
+                            ? memo.content.replace(/<[^>]*>/g, '')
                             : ''}
                         </p>
+                        {/* タグの表示: tagsが配列か確認 */}
+                        <div className="text-xs text-muted-foreground">
+                          {Array.isArray(memo.tags) && memo.tags.length > 0 ? (
+                            <p>Tags: {memo.tags.join(', ')}</p>
+                          ) : (
+                            <p>No tags</p>
+                          )}
+                        </div>
+                        {/* 時間の表示 */}
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(memo.date).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </div>
                       </div>
                       <span className="text-xs text-gray-500">{memo.charCount || 0}文字</span> {/* 文字数を表示 */}
                     </div>
@@ -175,12 +222,18 @@ export default function Chronotes() {
               <SummaryBlock />
             </div>
             <div className="flex-1 overflow-y-auto">
-              {/* Editorコンポーネントを使用 */}
-              <Editor selectedMemo={selectedMemo} setMemos={setMemos} memos={memos} />
+              {/* ローディング中の日付が選択された場合はスピナーを表示 */}
+              {loadingDates.some(loadingDate => loadingDate.getTime() === date?.getTime()) ? (
+                <div className="flex justify-center items-center h-full">
+                  <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mr-4"></div>
+                </div>
+              ) : (
+                <Editor selectedMemo={selectedMemo} setMemos={setMemos} memos={memos} />
+              )}
             </div>
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useApiUrl } from "@/components/api-provider";
-import { setCookie } from "@/lib/cookie";
+import { setCookie, deleteCookie } from "@/lib/cookie";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -46,16 +46,20 @@ export default function Signup() {
         body: JSON.stringify({ email, password, username }),
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        const { token } = await response.json();
+        // トークンをCookieにセット
+        setCookie("token", token, 7); // トークンをCookieにセット
+        // サインアップ後のリダイレクト
+        router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
+      } else if (response.status === 401) {
+        //logout
+        deleteCookie('token');
+        // ログイン画面へリダイレクト
+        router.push('/login');
+      } else {
         throw new Error("サインアップに失敗しました");
       }
-
-      const { token } = await response.json();
-
-      // トークンをCookieにセット
-      setCookie("token", token, 7); // トークンをCookieにセット
-      // サインアップ後のリダイレクト
-      router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -68,7 +72,7 @@ export default function Signup() {
   };
 
   return (
-    
+
     <div className="flex flex-col h-screen">
       <header className="flex justify-between items-center p-4">
         <h1 className="text-2xl font-bold">

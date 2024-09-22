@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation"; // app routerではuseRouterではなくuseNavigationを使用
 import Link from "next/link";
 import { useApiUrl } from "@/components/api-provider";
-import { setCookie } from "@/lib/cookie";
+import { setCookie, deleteCookie } from "@/lib/cookie";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -38,15 +38,20 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        const { token } = await response.json();
+        // トークンをCookieにセット
+        setCookie("token", token, 7); // トークンをCookieにセット
+        // ログイン後のリダイレクト
+        router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
+      } else if (response.status === 401) {
+        //logout
+        deleteCookie('token');
+        // ログイン画面へリダイレクト
+        router.push('/login');
+      } else {
         throw new Error("ログインに失敗しました");
       }
-      const { token } = await response.json();
-      // トークンをCookieにセット
-      setCookie("token", token, 7); // トークンをCookieにセット
-      // ログイン後のリダイレクト
-      router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
-
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
