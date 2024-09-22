@@ -32,7 +32,7 @@ export default function SummaryBlock() {
   const getDateRange = (period: string) => {
     const now = new Date();
     let fromDate: Date;
-    let toDate: Date = new Date(now);
+    const toDate: Date = new Date(now);
 
     switch (period) {
       case "today":

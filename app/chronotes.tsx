@@ -103,13 +103,15 @@ export default function Chronotes() {
 
           if (response.ok) {
             const data = await response.json();
+            const tags = data.tags ? data.tags.split(',') : [];
             const newMemo: Memo = {
               id: selectedDate.getTime(),
               date: selectedDate.toISOString(),
               title: data.title || 'no title',
               content: data.content || 'no contents',
-              tags: data.tags || [],
+              tags: tags || [],
             };
+            console.log(newMemo);
             //contentの先頭と最後に""がついている場合は削除
             if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
               newMemo.content = newMemo.content.slice(1, -1);
