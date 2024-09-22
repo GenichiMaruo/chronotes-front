@@ -28,60 +28,74 @@ export default function SummaryBlock() {
   const [activeTab, setActiveTab] = useState("today")
   const apiUrl = useApiUrl(); // Move useApiUrl inside the component
 
-  // Fetch summary for each period
-  const fetchSummary = useCallback(async (period: string) => {
-    let endpoint = ""
+  // Helper function to format the date range for each period
+  const getDateRange = (period: string) => {
+    const now = new Date();
+    let fromDate: Date;
+    let toDate: Date = new Date(now);
+
     switch (period) {
       case "today":
-        endpoint = `${apiUrl}/analytics/daily`
-        break
+        fromDate = new Date(now.setHours(0, 0, 0, 0));
+        break;
       case "week":
-        endpoint = `${apiUrl}/analytics/weekly`
-        break
+        fromDate = new Date(now.setDate(now.getDate() - 7));
+        break;
       case "month":
-        endpoint = `${apiUrl}/analytics/monthly`
-        break
+        fromDate = new Date(now.setMonth(now.getMonth() - 1));
+        break;
       case "quarter":
-        endpoint = `${apiUrl}/analytics/quarterly`
-        break
+        fromDate = new Date(now.setMonth(now.getMonth() - 3));
+        break;
       case "year":
-        endpoint = `${apiUrl}/analytics/yearly`
-        break
+        fromDate = new Date(now.setFullYear(now.getFullYear() - 1));
+        break;
       default:
-        throw new Error("Invalid period")
+        throw new Error("Invalid period");
     }
 
-    const token = getCookie("token")
+    return {
+      from: encodeURIComponent(fromDate.toISOString()),
+      to: encodeURIComponent(toDate.toISOString())
+    };
+  };
+
+  // Fetch summary for each period using the new API
+  const fetchSummary = useCallback(async (period: string) => {
+    const { from, to } = getDateRange(period);
+    const endpoint = `${apiUrl}/notes/summary?from=${from}&to=${to}`;
+
+    const token = getCookie("token");
     try {
       const response = await fetch(endpoint, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch summary")
+        throw new Error("Failed to fetch summary");
       }
-      const data = await response.json()
-      return data.summary
+      const data = await response.json();
+      return data.result;
     } catch (error) {
-      console.error("Error fetching summary:", error)
-      return "Failed to fetch summary"
+      console.error("Error fetching summary:", error);
+      return "Failed to fetch summary";
     }
-  }, [apiUrl]) // Add apiUrl as a dependency to useCallback
+  }, [apiUrl]); // Add apiUrl as a dependency to useCallback
 
   // Fetch summaries when the active tab changes
   useEffect(() => {
     const loadSummary = async (period: string) => {
-      setLoadingStates(prev => ({ ...prev, [period]: true }))
-      const summary = await fetchSummary(period)
-      setSummaries(prev => ({ ...prev, [period]: summary }))
-      setLoadingStates(prev => ({ ...prev, [period]: false }))
-    }
+      setLoadingStates(prev => ({ ...prev, [period]: true }));
+      const summary = await fetchSummary(period);
+      setSummaries(prev => ({ ...prev, [period]: summary }));
+      setLoadingStates(prev => ({ ...prev, [period]: false }));
+    };
 
     if (!summaries[activeTab]) {
-      loadSummary(activeTab)
+      loadSummary(activeTab);
     }
-  }, [activeTab, fetchSummary, summaries]) // Add fetchSummary as a dependency
+  }, [activeTab, fetchSummary, summaries]); // Add fetchSummary as a dependency
 
   return (
     <Card className={`w-full transition-all duration-300 h-auto`}>
@@ -123,5 +137,5 @@ export default function SummaryBlock() {
         </CardContent>
       )}
     </Card>
-  )
+  );
 }

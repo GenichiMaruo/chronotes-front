@@ -110,8 +110,10 @@ export default function Chronotes() {
               content: data.content || 'no contents',
               tags: data.tags || [],
             };
-            //contentの先頭と最後に""がついているので削除
-            newMemo.content = newMemo.content.slice(1, -1);
+            //contentの先頭と最後に""がついている場合は削除
+            if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
+              newMemo.content = newMemo.content.slice(1, -1);
+            }
             //contentの\nを削除
             newMemo.content = newMemo.content.replace(/\\n/g, '\n');
             const updatedMemos = [...parsedMemos, newMemo];
