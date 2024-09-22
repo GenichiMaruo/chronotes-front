@@ -5,9 +5,10 @@ import Header from "@/components/header";
 import HeaderMobile from '@/components/header-mobile'
 import SummaryBlock from "@/components/summary-block";
 import { useApiUrl } from '@/components/api-provider'
-import { getCookie } from '@/lib/cookie'
+import { getCookie, deleteCookie } from '@/lib/cookie'
 import Editor from '@/components/editor'
 import { Memo } from '@/lib/types'
+import router from 'next/router';
 
 // カスタムフック：画面サイズがlg以下かどうかを判定
 function useMediaQuery(query: string): boolean {
@@ -38,8 +39,12 @@ export default function Chronotes() {
   const apiUrl = useApiUrl();
 
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // ローディング状態の管理
-  const [loadingDate, setLoadingDate] = useState<Date | null>(null); // 現在読み込み中の日付
+  const [loadingDates, setLoadingDates] = useState<Date[]>([]); // 読み込み中の日付リスト
+
+  // loadingDatesが変更されるたびにコンソールに出力
+  useEffect(() => {
+    console.log(loadingDates);
+  }, [loadingDates]);
 
   useEffect(() => {
     const updateDarkMode = () => {
@@ -69,12 +74,9 @@ export default function Chronotes() {
   useEffect(() => {
     const fetchMemoData = async (selectedDate: Date) => {
       // ローディング中であれば再びリクエストしない
-      if (loadingDate && loadingDate.getTime() === selectedDate.getTime()) {
+      if (loadingDates.some(date => date.getTime() === selectedDate.getTime())) {
         return;
       }
-
-      setIsLoading(true); // ローディング状態を開始
-      setLoadingDate(selectedDate);
 
       // 選択された日付がローカルにあるか確認
       const savedMemos = localStorage.getItem('memos');
@@ -83,9 +85,9 @@ export default function Chronotes() {
 
       if (existingMemo) {
         setSelectedMemo(existingMemo);
-        setIsLoading(false); // ローディング終了
-        setLoadingDate(null);
+        setLoadingDates(loadingDates.filter(date => date.getTime() !== selectedDate.getTime())); // 読み込み中の日付を削除
       } else {
+        setLoadingDates([...loadingDates, selectedDate]); // 読み込み中の日付を追加
         const token = getCookie('token');
         if (!token) return;
 
@@ -101,25 +103,38 @@ export default function Chronotes() {
 
           if (response.ok) {
             const data = await response.json();
+            const tags = data.tags ? data.tags.split(',') : [];
             const newMemo: Memo = {
               id: selectedDate.getTime(),
               date: selectedDate.toISOString(),
-              title: selectedDate.toLocaleDateString(),
+              title: data.title || 'no title',
               content: data.content || 'no contents',
+              tags: tags || [],
             };
-
+            console.log(newMemo);
+            //contentの先頭と最後に""がついている場合は削除
+            if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
+              newMemo.content = newMemo.content.slice(1, -1);
+            }
+            //contentの\nを削除
+            newMemo.content = newMemo.content.replace(/\\n/g, '\n');
             const updatedMemos = [...parsedMemos, newMemo];
             setMemos(updatedMemos);
             localStorage.setItem('memos', JSON.stringify(updatedMemos));
             setSelectedMemo(newMemo);
+          } else if (response.status === 401) {
+            console.error('Unauthorized');
+            //logout
+            deleteCookie('token');
+            // ログイン画面へリダイレクト
+            router.push('/login');
           } else {
             console.error('Failed to fetch notes');
           }
         } catch (error) {
           console.error('Error fetching notes:', error);
         } finally {
-          setIsLoading(false); // ローディング終了
-          setLoadingDate(null); // 読み込み中の日付をクリア
+          setLoadingDates(loadingDates.filter(date => date.getTime() !== selectedDate.getTime())); // 読み込み中の日付を削除
         }
       }
     };
@@ -127,7 +142,7 @@ export default function Chronotes() {
     if (date) {
       fetchMemoData(date);
     }
-  }, [date, apiUrl, loadingDate]);
+  }, [date, apiUrl]);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -158,9 +173,27 @@ export default function Chronotes() {
                         <h3 className="font-medium truncate">{memo.title}</h3>
                         <p className="text-sm text-muted-foreground truncate">
                           {typeof memo.content === 'string'
-                            ? memo.content.replace(/<[^>]*>/g, '').slice(memo.title.length)
+                            ? memo.content.replace(/<[^>]*>/g, '')
                             : ''}
                         </p>
+                        {/* タグの表示: tagsが配列か確認 */}
+                        <div className="text-xs text-muted-foreground">
+                          {Array.isArray(memo.tags) && memo.tags.length > 0 ? (
+                            <p>Tags: {memo.tags.join(', ')}</p>
+                          ) : (
+                            <p>No tags</p>
+                          )}
+                        </div>
+                        {/* 時間の表示 */}
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(memo.date).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -186,7 +219,8 @@ export default function Chronotes() {
               <SummaryBlock />
             </div>
             <div className="flex-1 overflow-y-auto">
-              {isLoading ? (
+              {/* ローディング中の日付が選択された場合はスピナーを表示 */}
+              {loadingDates.some(loadingDate => loadingDate.getTime() === date?.getTime()) ? (
                 <div className="flex justify-center items-center h-full">
                   <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mr-4"></div>
                 </div>
