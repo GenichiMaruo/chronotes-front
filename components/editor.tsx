@@ -116,12 +116,6 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
     <>
       {editor && <Toolbar editor={editor} />}
       <EditorContent editor={editor} className='p-5' />
-      <div
-        className="absolute top-0 right-0 p-2 bg-white shadow-md rounded"
-        style={{ zIndex: 10 }} // z-indexを設定して他の要素より上に表示
-      >
-        文字数: {charCount}
-      </div>
     </>
   );
 }
