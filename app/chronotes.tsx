@@ -144,6 +144,54 @@ export default function Chronotes() {
     }
   }, [date, apiUrl]);
 
+  useEffect(() => {
+    const fetchWeeklyMemos = async () => {
+      const token = getCookie('token');
+      if (!token) return;
+
+      const now = new Date();
+      const to = encodeURIComponent(now.toISOString());
+      const from = new Date(now);
+      from.setDate(now.getDate() - 7);
+      const fromEncoded = encodeURIComponent(from.toISOString());
+
+      try {
+        const response = await fetch(`${apiUrl}/notes/list?from=${fromEncoded}&to=${to}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          // `Memo` 型を使用
+          const data: Memo[] = await response.json();
+          const newMemos = data.map((item: Memo) => ({
+            id: new Date(item.date).getTime(),
+            date: item.date,
+            title: item.title || 'no title',
+            tags: item.tags ? item.tags : [],
+            content: '', // コンテンツは最初に取得しない
+          }));
+
+          setMemos(newMemos);
+          localStorage.setItem('memos', JSON.stringify(newMemos));
+        } else if (response.status === 401) {
+          console.error('Unauthorized');
+          deleteCookie('token');
+          router.push('/login');
+        } else {
+          console.error('Failed to fetch weekly memos');
+        }
+      } catch (error) {
+        console.error('Error fetching weekly memos:', error);
+      }
+    };
+
+    fetchWeeklyMemos();
+  }, [apiUrl]);
+
   return (
     <div className="flex flex-col w-full h-full">
       <div className="flex flex-1 overflow-hidden relative">
@@ -179,7 +227,14 @@ export default function Chronotes() {
                         {/* タグの表示: tagsが配列か確認 */}
                         <div className="text-xs text-muted-foreground">
                           {Array.isArray(memo.tags) && memo.tags.length > 0 ? (
-                            <p>Tags: {memo.tags.join(', ')}</p>
+                            <p>
+                              {memo.tags.map((tag, index) => (
+                                <span key={index} className="text-blue-500">
+                                  #{tag}
+                                  {index < memo.tags.length - 1 && ", "}
+                                </span>
+                              ))}
+                            </p>
                           ) : (
                             <p>No tags</p>
                           )}
