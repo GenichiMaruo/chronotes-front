@@ -128,6 +128,7 @@ export default function Chronotes() {
             mode="single"
             selected={date}
             onSelect={setDate}
+            memoData={memos.map(memo => ({ date: memo.date, charcount: memo.content.length }))}
             className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? 'mt-20' : ''}`}
           />
           <ScrollArea className="flex-1 h-[50vh] my-10">

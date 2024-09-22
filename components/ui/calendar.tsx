@@ -7,14 +7,31 @@ import { DayPicker } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+  memoData: { date: string; charcount: number }[]; // memoDataを追加
+}
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  memoData,
   ...props
 }: CalendarProps) {
+
+  function getColor(charcount: number) {
+    if (charcount > 80) return 'bg-red-500';
+    else if (charcount > 40) return 'bg-yellow-500';
+    return 'bg-green-500';
+  }
+
+  function getColorForDay(date: { toISOString: () => string }) {
+    const memo = memoData.find(m => m.date === date.toISOString().split('T')[0]);
+    console.log(memo);
+    console.log(date.toISOString().split('T')[0]);
+    return memo ? getColor(memo.charcount) : ''; // 色を取得
+  }
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -44,7 +61,8 @@ function Calendar({
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 p-0 font-normal aria-selected:opacity-100"
+          "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
+          ({ date }: { date: Date }) => getColorForDay(date) // memoDataに基づいて色を適用
         ),
         day_range_start: "day-range-start",
         day_range_end: "day-range-end",
