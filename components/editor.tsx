@@ -41,7 +41,7 @@ type EditorProps = {
 
 export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
   const [charCount, setCharCount] = useState(selectedMemo?.charCount || 0); // 初期値をメモの文字数に設定
-  
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -72,7 +72,7 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
     content: selectedMemo ? selectedMemo.content : '', // selectedMemoが存在する場合のみ
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
-      
+
       // 文字数をカウント
       const newCharCount = countCharacters(content);
       setCharCount(newCharCount);
@@ -80,7 +80,7 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, content, charCount: newCharCount };
       const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo));
-      
+
       setMemos(updatedMemos);
       localStorage.setItem('memos', JSON.stringify(updatedMemos));
     },
@@ -103,7 +103,8 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       editor.commands.setContent(selectedMemo.content || '');
       const initialCharCount = countCharacters(selectedMemo.content || '');
       setCharCount(initialCharCount); // 初期文字数を設定
-  
+      console.log('charCount', charCount);
+
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, charCount: initialCharCount };
       const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo));
