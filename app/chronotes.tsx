@@ -193,6 +193,8 @@ export default function Chronotes() {
     fetchWeeklyMemos();
   }, [apiUrl]);
 
+  console.log("memos", memos);
+
   return (
     <div className="flex flex-col w-full h-full">
       <div className="flex flex-1 overflow-hidden relative">
@@ -205,7 +207,7 @@ export default function Chronotes() {
             mode="single"
             selected={date}
             onSelect={setDate}
-            memoData={memos.map(memo => ({ date: memo.date, charcount: memo.content.length }))}
+            memoData={memos}
             className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? 'mt-20' : ''}`}
           />
           <ScrollArea className="flex-1 h-[50vh] my-10">
