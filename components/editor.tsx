@@ -103,7 +103,6 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       editor.commands.setContent(selectedMemo.content || '');
       const initialCharCount = countCharacters(selectedMemo.content || '');
       setCharCount(initialCharCount); // 初期文字数を設定
-      console.log('charCount', charCount);
 
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, charCount: initialCharCount };

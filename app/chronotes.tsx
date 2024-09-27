@@ -112,7 +112,6 @@ export default function Chronotes() {
               content: data.content || 'no contents',
               tags: tags || [],
             };
-            console.log(newMemo);
             //contentの先頭と最後に""がついている場合は削除
             if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
               newMemo.content = newMemo.content.slice(1, -1);
@@ -192,8 +191,6 @@ export default function Chronotes() {
 
     fetchWeeklyMemos();
   }, [apiUrl]);
-
-  console.log("memos", memos);
 
   return (
     <div className="flex flex-col w-full h-full">
