@@ -77,6 +77,8 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       const newCharCount = countCharacters(content);
       setCharCount(newCharCount);
 
+      console.log(charCount);
+
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, content, charCount: newCharCount };
       const updatedMemos = memos.map((memo) => (memo.id === selectedMemo.id ? updatedMemo : memo));
