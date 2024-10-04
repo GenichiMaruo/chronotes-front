@@ -35,8 +35,7 @@ import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { useApiUrl } from "@/components/api-provider";
 import { getCookie, deleteCookie } from "@/lib/cookie";
-import { FaGithub, FaSlack, FaDiscord } from 'react-icons/fa';
-import ServiceHelp from "./service-help";
+import AccountLinking from "./account-linking";
 
 export default function AppSettings({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { setTheme } = useTheme();
@@ -147,73 +146,16 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {/* アカウント連携セクション */}
-          <div className="mb-8">
-            <div className="grid grid-cols-3 gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedService('github')}
-                className="bg-black dark:bg-white text-white dark:text-black"
-              >
-                <FaGithub className="text-[30px]" />
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedService('slack')}
-                className="bg-black dark:bg-white text-white dark:text-black"
-              >
-                <FaSlack className="text-[30px]" />
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedService('discord')}
-                className="bg-black dark:bg-white text-white dark:text-black"
-              >
-                <FaDiscord className="text-[30px]" />
-              </Button>
-            </div>
-            {selectedService === 'github' && (
-              <div className="mt-4">
-                <div className="flex h-6 items-center">
-                  <Label htmlFor="github-id">GitHub ID</Label>
-                  <ServiceHelp className="mx-3" />
-                </div>
-                <Input
-                  id="github-id"
-                  value={githubId}
-                  onChange={(e) => setGithubId(e.target.value)}
-                  className="bg-gray-700 dark:bg-white text-white dark:text-black"
-                />
-              </div>
-            )}
-            {selectedService === 'slack' && (
-              <div className="mt-4">
-                <div className="flex h-6 items-center">
-                  <Label htmlFor="slack-id">Slack channel_ID</Label>
-                  <ServiceHelp className="mx-3" />
-                </div>
-                <Input
-                  id="slack-id"
-                  value={slackId}
-                  onChange={(e) => setSlackId(e.target.value)}
-                  className="bg-gray-700 dark:bg-white text-white dark:text-black"
-                />
-              </div>
-            )}
-            {selectedService === 'discord' && (
-              <div className="mt-4">
-                <div className="flex h-6 items-center">
-                  <Label htmlFor="discord-id">Discord channel_ID</Label>
-                  <ServiceHelp className="mx-3" />
-                </div>
-                <Input
-                  id="discord-id"
-                  value={discordId}
-                  onChange={(e) => setDiscordId(e.target.value)}
-                  className="bg-gray-700 dark:bg-white text-white dark:text-black"
-                />
-              </div>
-            )}
-          </div>
+          <AccountLinking
+            selectedService={selectedService}
+            githubId={githubId}
+            slackId={slackId}
+            discordId={discordId}
+            setSelectedService={setSelectedService}
+            setGithubId={setGithubId}
+            setSlackId={setSlackId}
+            setDiscordId={setDiscordId}
+          />
 
           {/* テーマ設定 */}
           <div className="grid grid-cols-5 items-center gap-4">

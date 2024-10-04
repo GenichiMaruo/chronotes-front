@@ -6,9 +6,10 @@ import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { Memo } from "@/lib/types"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
-  memoData: { date: string; charcount: number }[]; // memoDataを追加
+  memoData : Memo[]
 }
 
 function Calendar({
@@ -19,18 +20,36 @@ function Calendar({
   ...props
 }: CalendarProps) {
 
-  function getColor(charcount: number) {
-    if (charcount > 80) return 'bg-red-500';
-    else if (charcount > 40) return 'bg-yellow-500';
-    return 'bg-green-500';
-  }
+  const getBackgroundColor = (charCount: number) => {
+    if (charCount === 0) {
+      return "transparent";
+    }
+    let intensity = Math.min(charCount / 1000, 1);
+    intensity += 0.2;
+    const color = `rgba(0, 100, 0, ${intensity})`;
+    return color;
+  };
+  // 各メモの日付を modifiers に一日ずつ追加
+  const modifiers: Record<string, Date[]> = memoData.reduce((acc, memo) => {
+    const date = new Date(memo.date);
+    const key = date.toISOString().split('T')[0]; // 日付を "YYYY-MM-DD" 形式に変換
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(date);
+    return acc;
+  }, {} as Record<string, Date[]>);
 
-  function getColorForDay(date: { toISOString: () => string }) {
-    const memo = memoData.find(m => m.date === date.toISOString().split('T')[0]);
-    console.log(memo);
-    console.log(date.toISOString().split('T')[0]);
-    return memo ? getColor(memo.charcount) : ''; // 色を取得
-  }
+  // 文字数に応じたスタイルを生成
+  const modifiersStyles: Record<string, React.CSSProperties> = memoData.reduce(
+    (styles, memo) => {
+      const dateKey = new Date(memo.date).toISOString().split('T')[0];
+      const bkg = getBackgroundColor(memo.charCount ?? 0);
+      styles[dateKey] = { backgroundColor: bkg };
+      return styles;
+    },
+    {} as Record<string, React.CSSProperties>
+  );
 
   return (
     <DayPicker
@@ -61,8 +80,7 @@ function Calendar({
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-          ({ date }: { date: Date }) => getColorForDay(date) // memoDataに基づいて色を適用
+          "h-8 w-8 p-0 font-normal aria-selected:opacity-100"
         ),
         day_range_start: "day-range-start",
         day_range_end: "day-range-end",
@@ -81,6 +99,8 @@ function Calendar({
         IconLeft: ({}) => <ChevronLeftIcon className="h-4 w-4" />,
         IconRight: ({}) => <ChevronRightIcon className="h-4 w-4" />,
       }}
+      modifiers={modifiers}
+      modifiersStyles={modifiersStyles}
       {...props}
     />
   )

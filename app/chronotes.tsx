@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Calendar } from '@/components/ui/calendar'
 import Header from "@/components/header";
 import HeaderMobile from '@/components/header-mobile'
 import SummaryBlock from "@/components/summary-block";
+import MemoList from '@/components/memo-list';
 import { useApiUrl } from '@/components/api-provider'
 import { getCookie, deleteCookie } from '@/lib/cookie'
 import Editor from '@/components/editor'
@@ -112,7 +112,6 @@ export default function Chronotes() {
               content: data.content || 'no contents',
               tags: tags || [],
             };
-            console.log(newMemo);
             //contentの先頭と最後に""がついている場合は削除
             if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
               newMemo.content = newMemo.content.slice(1, -1);
@@ -205,59 +204,14 @@ export default function Chronotes() {
             mode="single"
             selected={date}
             onSelect={setDate}
-            memoData={memos.map(memo => ({ date: memo.date, charcount: memo.content.length }))}
+            memoData={memos}
             className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? 'mt-20' : ''}`}
           />
-          <ScrollArea className="flex-1 h-[50vh] my-10">
-            <div className="w-[250px] truncate">
-              {memos
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .map((memo) => (
-                  <div
-                    key={memo.id}
-                    className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'}`}
-                    onClick={() => setSelectedMemo(memo)}
-                  >
-                    <div className="flex justify-between items-center w-auto">
-                      <div className="truncate">
-                        <h3 className="font-medium truncate">{memo.title}</h3>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {typeof memo.content === 'string'
-                            ? memo.content.replace(/<[^>]*>/g, '')
-                            : ''}
-                        </p>
-                        {/* タグの表示: tagsが配列か確認 */}
-                        <div className="text-xs text-muted-foreground">
-                          {Array.isArray(memo.tags) && memo.tags.length > 0 ? (
-                            <p>
-                              {memo.tags.map((tag, index) => (
-                                <span key={index} className="text-blue-500">
-                                  #{tag}
-                                  {index < memo.tags.length - 1 && ", "}
-                                </span>
-                              ))}
-                            </p>
-                          ) : (
-                            <p>No tags</p>
-                          )}
-                        </div>
-                        {/* 時間の表示 */}
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(memo.date).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-500">{memo.charCount || 0}文字</span> {/* 文字数を表示 */}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </ScrollArea>
+          <MemoList 
+            memos={memos} 
+            selectedMemo={selectedMemo} 
+            setSelectedMemo={setSelectedMemo} 
+          />
         </aside>
 
         {/* メインエリア */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import StarterKit from '@tiptap/starter-kit'
@@ -16,7 +16,6 @@ import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
-import FloatingMenu from '@tiptap/extension-floating-menu'
 import { createLowlight } from 'lowlight'
 import css from 'highlight.js/lib/languages/css'
 import js from 'highlight.js/lib/languages/javascript'
@@ -26,6 +25,7 @@ import { Memo } from '@/lib/types'
 import Toolbar from '@/components/toolbar'
 import Link from "@tiptap/extension-link";
 import GraphemeSplitter from 'grapheme-splitter'
+import Floating from '@/components/floating'
 
 const lowlight = createLowlight()
 lowlight.register('html', html)
@@ -41,6 +41,7 @@ type EditorProps = {
 
 export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
   const [charCount, setCharCount] = useState(selectedMemo?.charCount || 0); // 初期値をメモの文字数に設定
+  const floatingToolbarRef = useRef<HTMLDivElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -66,7 +67,6 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       TaskItem.configure({
         nested: true,
       }),
-      FloatingMenu,
       Link,
     ],
     content: selectedMemo ? selectedMemo.content : '', // selectedMemoが存在する場合のみ
@@ -76,6 +76,8 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       // 文字数をカウント
       const newCharCount = countCharacters(content);
       setCharCount(newCharCount);
+
+      console.log(charCount);
 
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, content, charCount: newCharCount };
@@ -103,7 +105,6 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
       editor.commands.setContent(selectedMemo.content || '');
       const initialCharCount = countCharacters(selectedMemo.content || '');
       setCharCount(initialCharCount); // 初期文字数を設定
-      console.log('charCount', charCount);
 
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, charCount: initialCharCount };
@@ -113,10 +114,40 @@ export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
     }
   }, [selectedMemo, editor]);
 
+  useEffect(() => {
+    if (editor) {
+      const updateFloatingMenuPosition = () => {
+        const { selection } = editor.state
+        const { from } = selection
+        if (!editor.view.hasFocus() || selection.empty) {
+          floatingToolbarRef.current!.style.display = 'none'
+          return
+        }
+        const { top, left } = editor.view.coordsAtPos(from)
+        const offset = 70 // 位置を調整するためのオフセット値
+        floatingToolbarRef.current!.style.top = `${top - offset}px`
+        floatingToolbarRef.current!.style.left = `${left}px`
+        floatingToolbarRef.current!.style.display = 'block'
+      }      
+
+      editor.on('selectionUpdate', updateFloatingMenuPosition)
+      return () => {
+        editor.off('selectionUpdate', updateFloatingMenuPosition)
+      }
+    }
+  }, [editor])
+
   return (
     <>
       {editor && <Toolbar editor={editor} />}
       <EditorContent editor={editor} className='p-5' />
+      <div 
+        id="floating-toolbar" 
+        ref={floatingToolbarRef} 
+        className="absolute hidden z-10 bg-white border border-gray-300 rounded shadow-md "
+      >
+        {editor && <Floating editor={editor} />}
+      </div>
     </>
   );
 }
