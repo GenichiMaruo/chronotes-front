@@ -8,10 +8,12 @@ import { useRouter } from "next/navigation"; // app routerではuseRouterでは�
 import Link from "next/link";
 import { useApiUrl } from "@/components/api-provider";
 import { setCookie, deleteCookie } from "@/lib/cookie";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -85,14 +87,23 @@ export default function Login() {
           />
 
           <Label htmlFor="password">パスワード</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mb-4"
-            placeholder="パスワードを入力してください"
-          />
+          <div className="relative mb-4">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mb-4"
+              placeholder="パスワードを入力してください"
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
 
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
