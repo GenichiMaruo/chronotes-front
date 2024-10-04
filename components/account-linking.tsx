@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { FaGithub, FaSlack, FaDiscord } from 'react-icons/fa';
 import ServiceHelp from "./service-help";
 import { useApiUrl } from "@/components/api-provider";
+import { getCookie, deleteCookie } from "@/lib/cookie";
 
 interface AccountLinkingProps {
   selectedService: string;
@@ -40,11 +41,13 @@ const AccountLinking = ({
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${getCookie('token')}`,
           },
           body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error('Failed to link account');
         console.log('Account linked successfully');
+        deleteCookie('token');
       } catch (error) {
         console.error('Error linking account:', error);
       }
