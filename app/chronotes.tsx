@@ -148,7 +148,7 @@ export default function Chronotes() {
         // メモデータが取得できた場合に処理
         const data = response.notes || [];
         if (data.length > 0) {
-          const newMemos = data.map((item: any) => {
+          const newMemos = data.map((item: { date: string; title: string; tags: string }) => {
             // タグがカンマ区切りかつ改行を含む場合、改行を除去
             const tags = item.tags ? item.tags.replace(/\\n/g, '').split(',') : [];
 
