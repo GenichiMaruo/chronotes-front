@@ -135,7 +135,7 @@ export default function Chronotes() {
       const now = new Date();
       const to = encodeURIComponent(now.toISOString());
       const from = new Date(now);
-      from.setDate(now.getDate() - 7);
+      from.setDate(now.getDate() - 14);
       const fromEncoded = encodeURIComponent(from.toISOString());
 
       try {
