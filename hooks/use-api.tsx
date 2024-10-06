@@ -33,6 +33,7 @@ export const ApiHandler = () => {
       // 401エラーの場合の処理
       if (response.status === 401) {
         deleteCookie('token');
+        window.location.href = '/login';
         return null;
       }
 
