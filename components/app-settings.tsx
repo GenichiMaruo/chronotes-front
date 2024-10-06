@@ -33,8 +33,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
-import { useApiUrl } from "@/components/api-provider";
-import { getCookie, deleteCookie } from "@/lib/cookie";
+import { deleteCookie } from "@/lib/cookie";
+import { ApiHandler } from "@/hooks/use-api";
 import AccountLinking from "./account-linking";
 
 export default function AppSettings({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -44,8 +44,6 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
   const [newEmail, setNewEmail] = useState('');
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [showDeleteNotesDialog, setShowDeleteNotesDialog] = useState(false);
-  const apiUrl = useApiUrl();
-
   const [selectedService, setSelectedService] = useState('');
   const [githubId, setGithubId] = useState('');
   const [slackId, setSlackId] = useState('');
@@ -106,21 +104,23 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
     }
   };
 
-  // アカウント削除処理
   const handleDeleteAccount = async () => {
+    const { apiRequest } = ApiHandler();
+
     try {
-      const response = await fetch(`${apiUrl}/users/me`, {
+      // APIリクエストをuseApiフックで実行
+      const response = await apiRequest({
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${getCookie('token')}`,
-        },
+        url: `/users/me`,
       });
-      if (!response.ok) throw new Error('アカウント削除に失敗しました');
-      console.log('Account deleted');
-      deleteCookie('token');
-      onClose();
+
+      if (response) {
+        console.log('Account deleted');
+        deleteCookie('token'); // トークンの削除
+        onClose(); // ダイアログ等の閉じる処理
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Error deleting account:', error);
     }
   };
 

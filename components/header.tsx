@@ -7,12 +7,18 @@ import { LogOut, Settings } from "lucide-react";
 import { deleteCookie } from "@/lib/cookie";
 import { useRouter } from "next/navigation";
 import AppSettings from '@/components/app-settings'
+import { ApiHandler } from '@/hooks/use-api';
 
 export default function Header({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const router = useRouter()
 
   const handleLogout = () => {
+    const { apiRequest } = ApiHandler()
+    apiRequest({
+      method: 'POST',
+      url: '/auth/logout'
+    })
     deleteCookie('token')  // トークンを削除
     router.push('/login')  // ログイン画面へリダイレクト
   }

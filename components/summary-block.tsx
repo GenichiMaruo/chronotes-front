@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MinimizeIcon, MaximizeIcon } from "lucide-react"
-import { useApiUrl } from "@/components/api-provider"
-import { getCookie } from "@/lib/cookie"
+import { ApiHandler } from "@/hooks/use-api"
 
 // Fetch summaries inside the component
 export default function SummaryBlock() {
@@ -26,7 +25,6 @@ export default function SummaryBlock() {
   })
   const [isMinimized, setIsMinimized] = useState(false)
   const [activeTab, setActiveTab] = useState("today")
-  const apiUrl = useApiUrl(); // Move useApiUrl inside the component
 
   // Helper function to format the date range for each period
   const getDateRange = (period: string) => {
@@ -60,28 +58,27 @@ export default function SummaryBlock() {
     };
   };
 
-  // Fetch summary for each period using the new API
   const fetchSummary = useCallback(async (period: string) => {
+    const { apiRequest } = ApiHandler();
     const { from, to } = getDateRange(period);
-    const endpoint = `${apiUrl}/notes/summary?from=${from}&to=${to}`;
+    const endpoint = `/notes/summary?from=${from}&to=${to}`;
 
-    const token = getCookie("token");
     try {
-      const response = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      // APIリクエストをuseApiフックで実行
+      const data = await apiRequest({
+        method: 'GET',
+        url: endpoint,
       });
-      if (!response.ok) {
-        throw new Error("Failed to fetch summary");
+
+      // データが正常に取得された場合
+      if (data) {
+        return data.result;
       }
-      const data = await response.json();
-      return data.result;
     } catch (error) {
       console.error("Error fetching summary:", error);
       return "Failed to fetch summary";
     }
-  }, [apiUrl]); // Add apiUrl as a dependency to useCallback
+  }, [ApiHandler]);
 
   useEffect(() => {
     const loadSummary = async (period: string) => {
