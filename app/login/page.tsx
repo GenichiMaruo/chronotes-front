@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation"; // app routerではuseRouterではなくuseNavigationを使用
 import Link from "next/link";
-import { useApiUrl } from "@/components/api-provider";
-import { setCookie, deleteCookie } from "@/lib/cookie";
+import { setCookie } from "@/lib/cookie";
+import { ApiHandler } from "@/hooks/use-api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,7 +15,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const apiUrl = useApiUrl();
+  const { apiRequest } = ApiHandler();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -30,25 +30,18 @@ export default function Login() {
 
     try {
       // APIリクエストを送信
-      const response = await fetch(`${apiUrl}/users/login`, {
+      const data = await apiRequest({
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        url: "/auth/login",
+        body: { email, password },
       });
 
-      if (response.ok) {
-        const { token } = await response.json();
+      if (data) {
+        const { token } = await data;
         // トークンをCookieにセット
         setCookie("token", token, 7); // トークンをCookieにセット
         // ログイン後のリダイレクト
         router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
-      } else if (response.status === 401) {
-        //logout
-        deleteCookie('token');
-        // ログイン画面へリダイレクト
-        router.push('/login');
       } else {
         throw new Error("ログインに失敗しました");
       }

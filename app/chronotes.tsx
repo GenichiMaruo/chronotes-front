@@ -4,11 +4,9 @@ import Header from "@/components/header";
 import HeaderMobile from '@/components/header-mobile'
 import SummaryBlock from "@/components/summary-block";
 import MemoList from '@/components/memo-list';
-import { useApiUrl } from '@/components/api-provider'
-import { getCookie, deleteCookie } from '@/lib/cookie'
 import Editor from '@/components/editor'
 import { Memo } from '@/lib/types'
-import router from 'next/router';
+import { ApiHandler } from '@/hooks/use-api'
 
 // カスタムフック：画面サイズがlg以下かどうかを判定
 function useMediaQuery(query: string): boolean {
@@ -36,7 +34,7 @@ export default function Chronotes() {
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0]);
   const [isSidebarVisible, setSidebarVisible] = useState(true); // 表示非表示の管理
   const isMobile = useMediaQuery('(max-width: 1024px)');
-  const apiUrl = useApiUrl();
+  const { apiRequest } = ApiHandler();
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [loadingDates, setLoadingDates] = useState<Date[]>([]); // 読み込み中の日付リスト
@@ -78,7 +76,7 @@ export default function Chronotes() {
         return;
       }
 
-      // 選択された日付がローカルにあるか確認
+      // ローカルストレージにあるか確認
       const savedMemos = localStorage.getItem('memos');
       const parsedMemos: Memo[] = savedMemos ? JSON.parse(savedMemos) : [];
       const existingMemo = parsedMemos.find(memo => memo.date === selectedDate.toISOString());
@@ -88,22 +86,16 @@ export default function Chronotes() {
         setLoadingDates(loadingDates.filter(date => date.getTime() !== selectedDate.getTime())); // 読み込み中の日付を削除
       } else {
         setLoadingDates([...loadingDates, selectedDate]); // 読み込み中の日付を追加
-        // 存在しない場合はAPIから取得
-        const token = getCookie('token');
-        if (!token) return;
 
         try {
-          const date = encodeURIComponent(selectedDate.toISOString());
-          const response = await fetch(`${apiUrl}/notes/note?date=${date}`, {
+          // APIからデータを取得
+          const dateParam = encodeURIComponent(selectedDate.toISOString());
+          const data = await apiRequest({
             method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
+            url: `/notes/note?date=${dateParam}`,
           });
 
-          if (response.ok) {
-            const data = await response.json();
+          if (data) {
             const tags = data.tags ? data.tags.split(',') : [];
             const newMemo: Memo = {
               id: selectedDate.getTime(),
@@ -112,24 +104,18 @@ export default function Chronotes() {
               content: data.content || 'no contents',
               tags: tags || [],
             };
-            //contentの先頭と最後に""がついている場合は削除
+
+            // contentの先頭と最後の""を削除
             if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
               newMemo.content = newMemo.content.slice(1, -1);
             }
-            //contentの\nを削除
+            // contentの\nを改行に変換
             newMemo.content = newMemo.content.replace(/\\n/g, '\n');
+
             const updatedMemos = [...parsedMemos, newMemo];
             setMemos(updatedMemos);
             localStorage.setItem('memos', JSON.stringify(updatedMemos));
             setSelectedMemo(newMemo);
-          } else if (response.status === 401) {
-            console.error('Unauthorized');
-            //logout
-            deleteCookie('token');
-            // ログイン画面へリダイレクト
-            router.push('/login');
-          } else {
-            console.error('Failed to fetch notes');
           }
         } catch (error) {
           console.error('Error fetching notes:', error);
@@ -142,12 +128,10 @@ export default function Chronotes() {
     if (date) {
       fetchMemoData(date);
     }
-  }, [date, apiUrl]);
+  }, [date]);
 
   useEffect(() => {
     const fetchWeeklyMemos = async () => {
-      const token = getCookie('token');
-      if (!token) return;
 
       const now = new Date();
       const to = encodeURIComponent(now.toISOString());
@@ -156,17 +140,14 @@ export default function Chronotes() {
       const fromEncoded = encodeURIComponent(from.toISOString());
 
       try {
-        const response = await fetch(`${apiUrl}/notes/list?from=${fromEncoded}&to=${to}`, {
+        // APIリクエストをuseApiフックで行う
+        const data: Memo[] = await apiRequest({
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          url: `/notes/list?from=${fromEncoded}&to=${to}`,
         });
 
-        if (response.ok) {
-          // `Memo` 型を使用
-          const data: Memo[] = await response.json();
+        if (data) {
+          // `Memo` 型のデータを処理
           const newMemos = data.map((item: Memo) => ({
             id: new Date(item.date).getTime(),
             date: item.date,
@@ -177,12 +158,6 @@ export default function Chronotes() {
 
           setMemos(newMemos);
           localStorage.setItem('memos', JSON.stringify(newMemos));
-        } else if (response.status === 401) {
-          console.error('Unauthorized');
-          deleteCookie('token');
-          router.push('/login');
-        } else {
-          console.error('Failed to fetch weekly memos');
         }
       } catch (error) {
         console.error('Error fetching weekly memos:', error);
@@ -190,7 +165,7 @@ export default function Chronotes() {
     };
 
     fetchWeeklyMemos();
-  }, [apiUrl]);
+  }, []);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -207,10 +182,10 @@ export default function Chronotes() {
             memoData={memos}
             className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? 'mt-20' : ''}`}
           />
-          <MemoList 
-            memos={memos} 
-            selectedMemo={selectedMemo} 
-            setSelectedMemo={setSelectedMemo} 
+          <MemoList
+            memos={memos}
+            selectedMemo={selectedMemo}
+            setSelectedMemo={setSelectedMemo}
           />
         </aside>
 

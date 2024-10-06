@@ -6,18 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useApiUrl } from "@/components/api-provider";
-import { setCookie, deleteCookie } from "@/lib/cookie";
+import { setCookie } from "@/lib/cookie";
+import { ApiHandler } from "@/hooks/use-api";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUserName] = useState("");
+  const [userid, setUserId] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const apiUrl = useApiUrl();
+  const { apiRequest } = ApiHandler();
 
   const handleSignup = async () => {
     setLoading(true);
@@ -38,25 +39,18 @@ export default function Signup() {
 
     try {
       // APIリクエストを送信
-      const response = await fetch(`${apiUrl}/users/register`, {
+      const data = await apiRequest({
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, username }),
+        url: "/auth/register",
+        body: { email, password, user_name: username, user_id: userid },
       });
 
-      if (response.ok) {
-        const { token } = await response.json();
+      if (data) {
+        const { token } = await data;
         // トークンをCookieにセット
         setCookie("token", token, 7); // トークンをCookieにセット
         // サインアップ後のリダイレクト
         router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
-      } else if (response.status === 401) {
-        //logout
-        deleteCookie('token');
-        // ログイン画面へリダイレクト
-        router.push('/login');
       } else {
         throw new Error("サインアップに失敗しました");
       }
@@ -91,6 +85,16 @@ export default function Signup() {
             onChange={(e) => setUserName(e.target.value)}
             className="mb-4"
             placeholder="ユーザー名を入力してください"
+          />
+
+          <Label htmlFor="user_id">ユーザーID</Label>
+          <Input
+            id="user_id"
+            type="text"
+            value={userid}
+            onChange={(e) => setUserId(e.target.value)}
+            className="mb-4"
+            placeholder="ユーザーIDを入力してください"
           />
 
           <Label htmlFor="email">メールアドレス</Label>
