@@ -132,32 +132,37 @@ export default function Chronotes() {
 
   useEffect(() => {
     const fetchWeeklyMemos = async () => {
-
       const now = new Date();
       const to = encodeURIComponent(now.toISOString());
       const from = new Date(now);
-      from.setDate(now.getDate() - 7);
+      from.setDate(now.getDate() - 14);
       const fromEncoded = encodeURIComponent(from.toISOString());
 
       try {
         // APIリクエストをuseApiフックで行う
-        const data: Memo[] = await apiRequest({
+        const response = await apiRequest({
           method: 'GET',
           url: `/notes/list?from=${fromEncoded}&to=${to}`,
         });
 
-        if (data) {
-          // `Memo` 型のデータを処理
-          const newMemos = data.map((item: Memo) => ({
-            id: new Date(item.date).getTime(),
-            date: item.date,
-            title: item.title || 'no title',
-            tags: item.tags ? item.tags : [],
-            content: '', // コンテンツは最初に取得しない
-          }));
+        // メモデータが取得できた場合に処理
+        const data = response.notes || [];
+        if (data.length > 0) {
+          const newMemos = data.map((item: { date: string; title: string; tags: string }) => {
+            // タグがカンマ区切りかつ改行を含む場合、改行を除去
+            const tags = item.tags ? item.tags.replace(/\\n/g, '').split(',') : [];
+
+            return {
+              id: new Date(item.date).getTime(), // 日付をUNIXタイムスタンプに変換
+              date: item.date,
+              title: item.title ? item.title.trim() : 'no title', // タイトルが存在しない場合は'default title'とする
+              tags: tags,
+              content: '', // コンテンツは最初に取得しない
+            };
+          });
 
           setMemos(newMemos);
-          localStorage.setItem('memos', JSON.stringify(newMemos));
+          localStorage.setItem('memos', JSON.stringify(newMemos)); // ローカルストレージに保存
         }
       } catch (error) {
         console.error('Error fetching weekly memos:', error);
