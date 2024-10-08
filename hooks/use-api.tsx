@@ -7,7 +7,7 @@ type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 interface ApiRequestOptions {
   method: RequestMethod;
   url: string;
-  body?: any;
+  body?: Record<string, unknown>;
   headers?: Record<string, string>;
 }
 
