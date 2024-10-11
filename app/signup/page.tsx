@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { setCookie } from "@/lib/cookie";
 import { ApiHandler } from "@/hooks/use-api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,9 @@ export default function Signup() {
   const [username, setUserName] = useState("");
   const [userid, setUserId] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordFocused1, setIsPasswordFocused1] = useState(false);
+  const [isPasswordFocused2, setIsPasswordFocused2] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -108,24 +112,52 @@ export default function Signup() {
           />
 
           <Label htmlFor="password">パスワード</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mb-4"
-            placeholder="パスワードを入力してください"
-          />
+          <div className="relative mb-4">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onFocus={() => setIsPasswordFocused1(true)}
+              onBlur={() => setIsPasswordFocused1(false)}
+              className="mb-4"
+              placeholder="パスワードを入力してください"
+            />
+            {isPasswordFocused1 && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            )}
+          </div>
 
           <Label htmlFor="confirmPassword">パスワード確認</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mb-4"
-            placeholder="パスワードを再度入力してください"
-          />
+          <div className="relative mb-4">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              onFocus={() => setIsPasswordFocused2(true)}
+              onBlur={() => setIsPasswordFocused2(false)}
+              className="mb-4"
+              placeholder="パスワードを再度入力してください"
+            />
+            {isPasswordFocused2 && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            )}
+          </div>
 
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
