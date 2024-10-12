@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MinimizeIcon, MaximizeIcon } from "lucide-react"
-import { ApiHandler } from "@/hooks/use-api"
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MinimizeIcon, MaximizeIcon } from "lucide-react";
+import { ApiHandler } from "@/hooks/use-api";
 
 // Fetch summaries inside the component
 export default function SummaryBlock() {
@@ -15,16 +15,16 @@ export default function SummaryBlock() {
     month: "",
     quarter: "",
     year: "",
-  })
+  });
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({
     today: true,
     week: false,
     month: false,
     quarter: false,
     year: false,
-  })
-  const [isMinimized, setIsMinimized] = useState(false)
-  const [activeTab, setActiveTab] = useState("today")
+  });
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [activeTab, setActiveTab] = useState("today");
 
   // Helper function to format the date range for each period
   const getDateRange = (period: string) => {
@@ -54,38 +54,41 @@ export default function SummaryBlock() {
 
     return {
       from: encodeURIComponent(fromDate.toISOString()),
-      to: encodeURIComponent(toDate.toISOString())
+      to: encodeURIComponent(toDate.toISOString()),
     };
   };
 
-  const fetchSummary = useCallback(async (period: string) => {
-    const { apiRequest } = ApiHandler();
-    const { from, to } = getDateRange(period);
-    const endpoint = `/notes/summary?from=${from}&to=${to}`;
+  const fetchSummary = useCallback(
+    async (period: string) => {
+      const { apiRequest } = ApiHandler();
+      const { from, to } = getDateRange(period);
+      const endpoint = `/notes/summary?from=${from}&to=${to}`;
 
-    try {
-      // APIリクエストをuseApiフックで実行
-      const data = await apiRequest({
-        method: 'GET',
-        url: endpoint,
-      });
+      try {
+        // APIリクエストをuseApiフックで実行
+        const data = await apiRequest({
+          method: "GET",
+          url: endpoint,
+        });
 
-      // データが正常に取得された場合
-      if (data) {
-        return data.result;
+        // データが正常に取得された場合
+        if (data) {
+          return data.result;
+        }
+      } catch (error) {
+        console.error("Error fetching summary:", error);
+        return "Failed to fetch summary";
       }
-    } catch (error) {
-      console.error("Error fetching summary:", error);
-      return "Failed to fetch summary";
-    }
-  }, [ApiHandler]);
+    },
+    [ApiHandler],
+  );
 
   useEffect(() => {
     const loadSummary = async (period: string) => {
-      setLoadingStates(prev => ({ ...prev, [period]: true }));
+      setLoadingStates((prev) => ({ ...prev, [period]: true }));
       const summary = await fetchSummary(period);
-      setSummaries(prev => ({ ...prev, [period]: summary }));
-      setLoadingStates(prev => ({ ...prev, [period]: false }));
+      setSummaries((prev) => ({ ...prev, [period]: summary }));
+      setLoadingStates((prev) => ({ ...prev, [period]: false }));
     };
 
     if (!summaries[activeTab]) {
@@ -103,12 +106,20 @@ export default function SummaryBlock() {
           onClick={() => setIsMinimized(!isMinimized)}
           aria-label={isMinimized ? "Maximize" : "Minimize"}
         >
-          {isMinimized ? <MaximizeIcon className="h-4 w-4" /> : <MinimizeIcon className="h-4 w-4" />}
+          {isMinimized ? (
+            <MaximizeIcon className="h-4 w-4" />
+          ) : (
+            <MinimizeIcon className="h-4 w-4" />
+          )}
         </Button>
       </CardHeader>
       {!isMinimized && (
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="today">Today</TabsTrigger>
               <TabsTrigger value="week">Week</TabsTrigger>

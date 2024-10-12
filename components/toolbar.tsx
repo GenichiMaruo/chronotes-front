@@ -1,4 +1,4 @@
-import { Editor } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 import { useCallback } from "react";
 import { AiOutlineLink } from "react-icons/ai";
 import {
@@ -23,12 +23,17 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
     }
     // empty
     if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetMark('link').run();
+      editor.chain().focus().extendMarkRange("link").unsetMark("link").run();
 
       return;
     }
     // update link
-    editor.chain().focus().extendMarkRange("link").setMark("link", { href: url }).run();
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setMark("link", { href: url })
+      .run();
   }, [editor]);
 
   if (!editor) {

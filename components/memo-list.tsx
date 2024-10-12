@@ -1,6 +1,6 @@
-import React from 'react';
+import type React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Memo } from '@/lib/types';
+import type { Memo } from "@/lib/types";
 
 interface MemoListProps {
   memos: Memo[];
@@ -8,23 +8,31 @@ interface MemoListProps {
   setSelectedMemo: (memo: Memo) => void;
 }
 
-const MemoList: React.FC<MemoListProps> = ({ memos, selectedMemo, setSelectedMemo }) => {
+const MemoList: React.FC<MemoListProps> = ({
+  memos,
+  selectedMemo,
+  setSelectedMemo,
+}) => {
   return (
     <ScrollArea className="flex-1 h-[50vh] my-10">
       <div className="w-[250px] truncate">
         {memos
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+          )
           .map((memo) => (
             <div
               key={memo.id}
-              className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? 'bg-secondary' : 'hover:bg-secondary/50'}`}
+              className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? "bg-secondary" : "hover:bg-secondary/50"}`}
               onClick={() => setSelectedMemo(memo)}
             >
               <div className="flex justify-between items-center w-auto">
                 <div className="truncate">
                   <h3 className="font-medium truncate">{memo.title}</h3>
                   <p className="text-sm text-muted-foreground truncate">
-                    {typeof memo.content === 'string' ? memo.content.replace(/<[^>]*>/g, '') : ''}
+                    {typeof memo.content === "string"
+                      ? memo.content.replace(/<[^>]*>/g, "")
+                      : ""}
                   </p>
                   {/* タグの表示: tagsが配列か確認 */}
                   <div className="text-xs text-muted-foreground">
@@ -43,17 +51,19 @@ const MemoList: React.FC<MemoListProps> = ({ memos, selectedMemo, setSelectedMem
                   </div>
                   {/* 時間の表示 */}
                   <div className="text-xs text-muted-foreground">
-                    {new Date(memo.date).toLocaleString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
+                    {new Date(memo.date).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </div>
                 </div>
                 {/* 文字数の表示 */}
-                <span className="text-xs text-gray-500">{memo.charCount || 0}文字</span> 
+                <span className="text-xs text-gray-500">
+                  {memo.charCount || 0}文字
+                </span>
               </div>
             </div>
           ))}
