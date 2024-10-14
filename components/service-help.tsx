@@ -1,14 +1,22 @@
 import * as React from "react";
 import { useState } from "react";
 import { FaExclamationCircle } from "react-icons/fa";
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface ServiceHelpModalProps {
   className?: string; // 外部からクラスを指定できるようにする
 }
 
-export default function ServiceHelpModal({ className = "" }: ServiceHelpModalProps) {
+export default function ServiceHelpModal({
+  className = "",
+}: ServiceHelpModalProps) {
   const [open, setOpen] = useState(false);
 
   // モーダルの開閉を管理
@@ -22,7 +30,7 @@ export default function ServiceHelpModal({ className = "" }: ServiceHelpModalPro
         className={`text-red-500 cursor-pointer ${className}`}
         onClick={handleOpen}
       />
-      
+
       {/* モーダル */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
@@ -32,9 +40,15 @@ export default function ServiceHelpModal({ className = "" }: ServiceHelpModalPro
           <div className="grid gap-4 py-4">
             <p>Here are the steps to link your account:</p>
             <ul className="list-disc pl-5">
-              <li><strong>GitHub:</strong> Provide your GitHub ID to link.</li>
-              <li><strong>Slack:</strong> Provide your Slack ID to link.</li>
-              <li><strong>Discord:</strong> Provide your Discord ID to link.</li>
+              <li>
+                <strong>GitHub:</strong> Provide your GitHub ID to link.
+              </li>
+              <li>
+                <strong>Slack:</strong> Provide your Slack ID to link.
+              </li>
+              <li>
+                <strong>Discord:</strong> Provide your Discord ID to link.
+              </li>
             </ul>
           </div>
           <DialogFooter>

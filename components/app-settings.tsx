@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { useState } from 'react';
+import type * as React from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,47 +37,50 @@ import { deleteCookie } from "@/lib/cookie";
 import { ApiHandler } from "@/hooks/use-api";
 import AccountLinking from "./account-linking";
 
-export default function AppSettings({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function AppSettings({
+  open,
+  onClose,
+}: { open: boolean; onClose: () => void }) {
   const { setTheme } = useTheme();
-  const [language, setLanguage] = useState('en');
-  const [newPassword, setNewPassword] = useState('');
-  const [newEmail, setNewEmail] = useState('');
+  const [language, setLanguage] = useState("en");
+  const [newPassword, setNewPassword] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [showDeleteNotesDialog, setShowDeleteNotesDialog] = useState(false);
-  const [selectedService, setSelectedService] = useState('');
-  const [githubId, setGithubId] = useState('');
-  const [slackId, setSlackId] = useState('');
-  const [discordId, setDiscordId] = useState('');
+  const [selectedService, setSelectedService] = useState("");
+  const [githubId, setGithubId] = useState("");
+  const [slackId, setSlackId] = useState("");
+  const [discordId, setDiscordId] = useState("");
 
   // ダイアログを閉じる処理
   const handleClose = () => {
     onClose();
-    setSelectedService(''); // サービス選択をリセット
-    setGithubId('');       // GitHub IDをリセット
-    setSlackId('');       // Slack IDをリセット
-    setDiscordId('');     // Discord IDをリセット
+    setSelectedService(""); // サービス選択をリセット
+    setGithubId(""); // GitHub IDをリセット
+    setSlackId(""); // Slack IDをリセット
+    setDiscordId(""); // Discord IDをリセット
   };
 
   // 言語変更処理
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
-    localStorage.setItem('language', value);
+    localStorage.setItem("language", value);
   };
 
   // パスワード変更処理
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/change-password', {
-        method: 'POST',
+      const response = await fetch("/api/change-password", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ password: newPassword }),
       });
-      if (!response.ok) throw new Error('パスワード変更に失敗しました');
-      console.log('Password changed to:', newPassword);
-      setNewPassword('');
+      if (!response.ok) throw new Error("パスワード変更に失敗しました");
+      console.log("Password changed to:", newPassword);
+      setNewPassword("");
       onClose();
     } catch (error) {
       console.error(error);
@@ -88,16 +91,16 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
   const handleEmailChange = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/change-email', {
-        method: 'POST',
+      const response = await fetch("/api/change-email", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email: newEmail }),
       });
-      if (!response.ok) throw new Error('メール変更に失敗しました');
-      console.log('Email changed to:', newEmail);
-      setNewEmail('');
+      if (!response.ok) throw new Error("メール変更に失敗しました");
+      console.log("Email changed to:", newEmail);
+      setNewEmail("");
       onClose();
     } catch (error) {
       console.error(error);
@@ -110,28 +113,28 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
     try {
       // APIリクエストをuseApiフックで実行
       const response = await apiRequest({
-        method: 'DELETE',
+        method: "DELETE",
         url: `/users/me`,
       });
 
       if (response) {
-        console.log('Account deleted');
-        deleteCookie('token'); // トークンの削除
+        console.log("Account deleted");
+        deleteCookie("token"); // トークンの削除
         onClose(); // ダイアログ等の閉じる処理
       }
     } catch (error) {
-      console.error('Error deleting account:', error);
+      console.error("Error deleting account:", error);
     }
   };
 
   // ノート全削除処理
   const handleDeleteNotes = async () => {
     try {
-      const response = await fetch('/api/delete-notes', {
-        method: 'DELETE',
+      const response = await fetch("/api/delete-notes", {
+        method: "DELETE",
       });
-      if (!response.ok) throw new Error('ノート削除に失敗しました');
-      console.log('All notes deleted');
+      if (!response.ok) throw new Error("ノート削除に失敗しました");
+      console.log("All notes deleted");
       onClose();
     } catch (error) {
       console.error(error);
@@ -270,14 +273,23 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
           </div>
 
           {/* アカウント削除確認ダイアログ */}
-          <Dialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+          <Dialog
+            open={showDeleteAccountDialog}
+            onOpenChange={setShowDeleteAccountDialog}
+          >
             <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
               <DialogHeader>
                 <DialogTitle>Are you sure?</DialogTitle>
               </DialogHeader>
-              <p>Do you really want to delete your account? This action cannot be undone.</p>
+              <p>
+                Do you really want to delete your account? This action cannot be
+                undone.
+              </p>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDeleteAccountDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteAccountDialog(false)}
+                >
                   Cancel
                 </Button>
                 <Button variant="destructive" onClick={handleDeleteAccount}>
@@ -288,14 +300,23 @@ export default function AppSettings({ open, onClose }: { open: boolean; onClose:
           </Dialog>
 
           {/* ノート全削除確認ダイアログ */}
-          <Dialog open={showDeleteNotesDialog} onOpenChange={setShowDeleteNotesDialog}>
+          <Dialog
+            open={showDeleteNotesDialog}
+            onOpenChange={setShowDeleteNotesDialog}
+          >
             <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
               <DialogHeader>
                 <DialogTitle>Are you sure?</DialogTitle>
               </DialogHeader>
-              <p>Do you really want to delete all notes? This action cannot be undone.</p>
+              <p>
+                Do you really want to delete all notes? This action cannot be
+                undone.
+              </p>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDeleteNotesDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteNotesDialog(false)}
+                >
                   Cancel
                 </Button>
                 <Button variant="destructive" onClick={handleDeleteNotes}>

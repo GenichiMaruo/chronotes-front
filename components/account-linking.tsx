@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FaGithub, FaSlack, FaDiscord } from 'react-icons/fa';
+import { FaGithub, FaSlack, FaDiscord } from "react-icons/fa";
 import ServiceHelp from "./service-help";
 import { ApiHandler } from "@/hooks/use-api";
 
@@ -26,8 +26,11 @@ const AccountLinking = ({
   setSlackId,
   setDiscordId,
 }: AccountLinkingProps) => {
-
-  const handleAccountLinking = async (githubId: string, slackId: string, discordId: string) => {
+  const handleAccountLinking = async (
+    githubId: string,
+    slackId: string,
+    discordId: string,
+  ) => {
     const { apiRequest } = ApiHandler();
 
     const payload = {
@@ -39,16 +42,16 @@ const AccountLinking = ({
     try {
       // APIリクエストをuseApiフックで実行
       const response = await apiRequest({
-        method: 'PUT',
+        method: "PUT",
         url: `/users/me`,
         body: payload,
       });
 
       if (response) {
-        console.log('Account linked successfully');
+        console.log("Account linked successfully");
       }
     } catch (error) {
-      console.error('Error linking account:', error);
+      console.error("Error linking account:", error);
     }
   };
 
@@ -62,21 +65,21 @@ const AccountLinking = ({
       <div className="grid grid-cols-3 gap-4">
         <Button
           variant="outline"
-          onClick={() => setSelectedService('github')}
+          onClick={() => setSelectedService("github")}
           className="bg-black dark:bg-white text-white dark:text-black"
         >
           <FaGithub className="text-[30px]" />
         </Button>
         <Button
           variant="outline"
-          onClick={() => setSelectedService('slack')}
+          onClick={() => setSelectedService("slack")}
           className="bg-black dark:bg-white text-white dark:text-black"
         >
           <FaSlack className="text-[30px]" />
         </Button>
         <Button
           variant="outline"
-          onClick={() => setSelectedService('discord')}
+          onClick={() => setSelectedService("discord")}
           className="bg-black dark:bg-white text-white dark:text-black"
         >
           <FaDiscord className="text-[30px]" />
@@ -84,7 +87,7 @@ const AccountLinking = ({
       </div>
 
       {/* GitHub入力 */}
-      {selectedService === 'github' && (
+      {selectedService === "github" && (
         <div className="mt-4">
           <div className="flex h-6 items-center">
             <Label htmlFor="github-id">GitHub ID</Label>
@@ -100,7 +103,7 @@ const AccountLinking = ({
       )}
 
       {/* Slack入力 */}
-      {selectedService === 'slack' && (
+      {selectedService === "slack" && (
         <div className="mt-4">
           <div className="flex h-6 items-center">
             <Label htmlFor="slack-id">Slack channel_ID</Label>
@@ -116,7 +119,7 @@ const AccountLinking = ({
       )}
 
       {/* Discord入力 */}
-      {selectedService === 'discord' && (
+      {selectedService === "discord" && (
         <div className="mt-4">
           <div className="flex h-6 items-center">
             <Label htmlFor="discord-id">Discord channel_ID</Label>
@@ -132,8 +135,10 @@ const AccountLinking = ({
       )}
 
       {/* アカウント連携ボタン */}
-      <Button onClick={() => handleAccountLinking(githubId, slackId, discordId)}
-        className="mt-2 w-full">
+      <Button
+        onClick={() => handleAccountLinking(githubId, slackId, discordId)}
+        className="mt-2 w-full"
+      >
         Link Account
       </Button>
     </div>

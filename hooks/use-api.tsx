@@ -1,8 +1,8 @@
 import { getCookie, deleteCookie } from "@/lib/cookie";
 
-const API_URL = 'https://chronotes.yashikota.com/api/v1';
+const API_URL = "https://chronotes.yashikota.com/api/v1";
 
-type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 interface ApiRequestOptions {
   method: RequestMethod;
@@ -12,12 +12,17 @@ interface ApiRequestOptions {
 }
 
 export const ApiHandler = () => {
-  const token = getCookie('token');
+  const token = getCookie("token");
 
-  const apiRequest = async ({ method, url, body, headers = {} }: ApiRequestOptions) => {
+  const apiRequest = async ({
+    method,
+    url,
+    body,
+    headers = {},
+  }: ApiRequestOptions) => {
     const requestHeaders: HeadersInit = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
       ...headers,
     };
 
@@ -32,8 +37,8 @@ export const ApiHandler = () => {
 
       // 401エラーの場合の処理
       if (response.status === 401) {
-        deleteCookie('token');
-        window.location.href = '/login';
+        deleteCookie("token");
+        window.location.href = "/login";
         return null;
       }
 
@@ -45,7 +50,7 @@ export const ApiHandler = () => {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('API Request Error:', error);
+      console.error("API Request Error:", error);
       return null;
     }
   };

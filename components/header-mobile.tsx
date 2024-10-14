@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { deleteCookie } from "@/lib/cookie";
 import { useRouter } from "next/navigation";
-import AppSettings from '@/components/app-settings'
+import AppSettings from "@/components/app-settings";
 
 interface HeaderMobileProps {
   isLoggedIn: boolean;
@@ -14,19 +19,21 @@ interface HeaderMobileProps {
   setSidebarVisible: (visible: boolean) => void;
 }
 
-export default function HeaderMobile({ isLoggedIn, isSidebarVisible, setSidebarVisible }: HeaderMobileProps) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const router = useRouter()
+export default function HeaderMobile({
+  isLoggedIn,
+  isSidebarVisible,
+  setSidebarVisible,
+}: HeaderMobileProps) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const router = useRouter();
 
   const handleLogout = () => {
-    deleteCookie('token')  // トークンを削除
-    router.push('/login')  // ログイン画面へリダイレクト
-  }
+    deleteCookie("token"); // トークンを削除
+    router.push("/login"); // ログイン画面へリダイレクト
+  };
 
   return (
     <header className="w-full h-[10vh] p-4 flex justify-between items-center">
-
-
       {isLoggedIn ? (
         <>
           {/* サイドバーの表示非表示ボタン（小さい画面用） */}
@@ -34,7 +41,11 @@ export default function HeaderMobile({ isLoggedIn, isSidebarVisible, setSidebarV
             onClick={() => setSidebarVisible(!isSidebarVisible)}
             className="lg:hidden p-2 z-50"
           >
-            {isSidebarVisible ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
+            {isSidebarVisible ? (
+              <ChevronLeft className="h-6 w-6" />
+            ) : (
+              <ChevronRight className="h-6 w-6" />
+            )}
           </Button>
           <div className="flex-grow flex justify-center lg:justify-start">
             <h1 className="text-2xl font-bold">
@@ -60,7 +71,10 @@ export default function HeaderMobile({ isLoggedIn, isSidebarVisible, setSidebarV
             </DropdownMenuContent>
           </DropdownMenu>
           {/* 設定モーダル */}
-          <AppSettings open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+          <AppSettings
+            open={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+          />
         </>
       ) : (
         <>

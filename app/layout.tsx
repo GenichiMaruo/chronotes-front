@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider"
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const title = "Chronotes";
 const description = "Chronotes";
@@ -34,6 +35,7 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
       </body>
+      <GoogleAnalytics gaId="G-R13JG02Z2F" />
     </html>
   );
 }

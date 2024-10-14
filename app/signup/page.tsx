@@ -66,7 +66,6 @@ export default function Signup() {
   };
 
   return (
-
     <div className="flex flex-col h-screen">
       <header className="flex justify-between items-center p-4">
         <h1 className="text-2xl font-bold">

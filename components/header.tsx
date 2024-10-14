@@ -1,27 +1,32 @@
-import { useState } from 'react'
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LogOut, Settings } from "lucide-react";
 import { deleteCookie } from "@/lib/cookie";
 import { useRouter } from "next/navigation";
-import AppSettings from '@/components/app-settings'
-import { ApiHandler } from '@/hooks/use-api';
+import AppSettings from "@/components/app-settings";
+import { ApiHandler } from "@/hooks/use-api";
 
 export default function Header({ isLoggedIn }: { isLoggedIn: boolean }) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const router = useRouter()
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const router = useRouter();
 
   const handleLogout = () => {
-    const { apiRequest } = ApiHandler()
+    const { apiRequest } = ApiHandler();
     apiRequest({
-      method: 'POST',
-      url: '/auth/logout'
-    })
-    deleteCookie('token')  // トークンを削除
-    router.push('/login')  // ログイン画面へリダイレクト
-  }
+      method: "POST",
+      url: "/auth/logout",
+    });
+    deleteCookie("token"); // トークンを削除
+    router.push("/login"); // ログイン画面へリダイレクト
+  };
 
   return (
     <header className="w-full h-[10vh] p-4 flex justify-between items-center">
@@ -51,7 +56,10 @@ export default function Header({ isLoggedIn }: { isLoggedIn: boolean }) {
             </DropdownMenuContent>
           </DropdownMenu>
           {/* 設定モーダル */}
-          <AppSettings open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+          <AppSettings
+            open={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+          />
         </>
       ) : (
         <>
