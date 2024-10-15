@@ -8,10 +8,24 @@ import { useRouter } from "next/navigation"; // app routerではuseRouterでは�
 import Link from "next/link";
 import { setCookie } from "@/lib/cookie";
 import { ApiHandler } from "@/hooks/use-api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
+// メールバリデーション関数
+const isEmail = (value: string) => {
+  const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  return re.test(value.replace(/\s+/g, '').trim()); // 不可視文字を削除
+};
+
+// 全角を半角に変換する関数
+const toHalfWidth = (value: string) => {
+  return value.replace(/[！-～]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+};
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -22,18 +36,26 @@ export default function Login() {
     setError("");
 
     // バリデーションチェック
-    if (!email || !password) {
-      setError("すべてのフィールドを入力してください");
-      setLoading(false);
-      return;
-    }
-
+    // if (!email || !password) {
+    //   setError("すべてのフィールドを入力してください");
+    //   setLoading(false);
+    //   return;
+    // }
+  
     try {
+      const body = {
+        email: isEmail(identifier) ? identifier : "",
+        user_id: isEmail(identifier) ? "" : identifier,
+        password,
+      };
+
+      console.log(isEmail(identifier));
+
       // APIリクエストを送信
       const data = await apiRequest({
         method: "POST",
         url: "/auth/login",
-        body: { email, password },
+        body,
       });
 
       if (data) {
@@ -56,6 +78,10 @@ export default function Login() {
     }
   };
 
+  // identifierが更新されると表示
+  console.log(identifier);
+  console.log(isEmail(identifier));
+
   return (
     <div className="flex flex-col h-screen">
       <header className="flex justify-between items-center p-4">
@@ -67,25 +93,39 @@ export default function Login() {
       <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
         <h1 className="text-2xl mb-4">ログイン</h1>
         <div className="w-full max-w-md">
-          <Label htmlFor="email">メールアドレス</Label>
+          <Label htmlFor="email">メールアドレス/ユーザーID</Label>
           <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="identifier"
+            type="text"
+            value={identifier}
+            onChange={(e) => setIdentifier(toHalfWidth(e.target.value))}
             className="mb-4"
-            placeholder="メールアドレスを入力してください"
+            placeholder="メールアドレス/ユーザーIDを入力してください"
           />
 
           <Label htmlFor="password">パスワード</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mb-4"
-            placeholder="パスワードを入力してください"
-          />
+          <div className="relative mb-4">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(toHalfWidth(e.target.value))}
+              onFocus={() => setIsPasswordFocused(true)}
+              onBlur={() => setIsPasswordFocused(false)}
+              className="mb-4"
+              placeholder="パスワードを入力してください"
+            />
+            {isPasswordFocused && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            )}
+          </div>
 
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
