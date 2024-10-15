@@ -34,21 +34,25 @@ export const ApiHandler = () => {
 
     try {
       const response = await fetch(`${API_URL}${url}`, requestOptions);
-
-      // 401エラーの場合の処理
-      if (response.status === 401) {
-        deleteCookie("token");
-        window.location.href = "/login";
-        return null;
+      if (response.ok === true) {
+        const data = await response.json();
+        return data;
+      } else {
+        switch (response.status) {
+          case 400:
+            throw new Error("Bad Request");
+          case 401:
+            deleteCookie("token");
+            window.location.href = "/login";
+            throw new Error("Unauthorized");
+          case 404:
+            throw new Error("Not Found");
+          case 500:
+            throw new Error("Internal Server Error");
+          default:
+            throw new Error("Unknown Error");
+        }
       }
-
-      // 204 No Content の場合の処理
-      if (response.status === 204) {
-        return null;
-      }
-
-      const data = await response.json();
-      return data;
     } catch (error) {
       console.error("API Request Error:", error);
       return null;
