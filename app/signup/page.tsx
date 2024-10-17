@@ -29,14 +29,14 @@ export default function Signup() {
     setError("");
 
     // バリデーションチェック
-    if (!email || !password || !confirmPassword) {
-      setError("すべてのフィールドを入力してください");
+    if (!username || !userid || !email || !password || !confirmPassword) {
+      setError("Enter all fields");
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("パスワードが一致しません");
+      setError("Passwords do not match");
       setLoading(false);
       return;
     }
@@ -56,13 +56,13 @@ export default function Signup() {
         // サインアップ後のリダイレクト
         router.push("/"); // ダッシュボードなどサインアップ後のページへリダイレクト
       } else {
-        throw new Error("サインアップに失敗しました");
+        throw new Error("Failed to sign up");
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError("サインアップに失敗しました");
+        setError("Failed to sign up");
       }
     } finally {
       setLoading(false);
@@ -78,39 +78,39 @@ export default function Signup() {
       </header>
 
       <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
-        <h1 className="text-2xl mb-4">サインアップ</h1>
+        <h1 className="text-2xl mb-4">Sign Up</h1>
         <div className="w-full max-w-md">
-          <Label htmlFor="userName">ユーザー名</Label>
+          <Label htmlFor="userName">UserName</Label>
           <Input
             id="userName"
             type="text"
             value={username}
             onChange={(e) => setUserName(e.target.value)}
             className="mb-4"
-            placeholder="ユーザー名を入力してください"
+            placeholder="Enter username"
           />
 
-          <Label htmlFor="user_id">ユーザーID</Label>
+          <Label htmlFor="user_id">User ID</Label>
           <Input
             id="user_id"
             type="text"
             value={userid}
             onChange={(e) => setUserId(e.target.value)}
             className="mb-4"
-            placeholder="ユーザーIDを入力してください"
+            placeholder="Enter user id"
           />
 
-          <Label htmlFor="email">メールアドレス</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="mb-4"
-            placeholder="メールアドレスを入力してください"
+            placeholder="Enter email"
           />
 
-          <Label htmlFor="password">パスワード</Label>
+          <Label htmlFor="password">Password</Label>
           <div className="relative mb-4">
             <Input
               id="password"
@@ -120,7 +120,7 @@ export default function Signup() {
               onFocus={() => setIsPasswordFocused1(true)}
               onBlur={() => setIsPasswordFocused1(false)}
               className="mb-4"
-              placeholder="パスワードを入力してください"
+              placeholder="Enter password"
             />
             {isPasswordFocused1 && (
               <button
@@ -134,7 +134,7 @@ export default function Signup() {
             )}
           </div>
 
-          <Label htmlFor="confirmPassword">パスワード確認</Label>
+          <Label htmlFor="confirmPassword">Confirm password</Label>
           <div className="relative mb-4">
             <Input
               id="password"
@@ -144,7 +144,7 @@ export default function Signup() {
               onFocus={() => setIsPasswordFocused2(true)}
               onBlur={() => setIsPasswordFocused2(false)}
               className="mb-4"
-              placeholder="パスワードを再度入力してください"
+              placeholder="Enter password"
             />
             {isPasswordFocused2 && (
               <button
@@ -161,12 +161,12 @@ export default function Signup() {
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <Button onClick={handleSignup} disabled={loading} className="w-full">
-            {loading ? "サインアップ中..." : "サインアップ"}
+            {loading ? "Loading..." : "Sign Up"}
           </Button>
 
           <div className="mt-4">
             <Link href="/login" className="text-blue-500">
-              ログインはこちら
+              Login
             </Link>
           </div>
         </div>
