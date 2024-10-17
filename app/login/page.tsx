@@ -35,12 +35,11 @@ export default function Login() {
     setLoading(true);
     setError("");
 
-    // バリデーションチェック
-    // if (!email || !password) {
-    //   setError("すべてのフィールドを入力してください");
-    //   setLoading(false);
-    //   return;
-    // }
+    if (!identifier || !password) {
+      setError("Enter email / userID and password");
+      setLoading(false);
+      return;
+    }
   
     try {
       const body = {
@@ -65,13 +64,13 @@ export default function Login() {
         // ログイン後のリダイレクト
         router.push("/"); // ダッシュボードなどログイン後のページへリダイレクト
       } else {
-        throw new Error("ログインに失敗しました");
+        throw new Error("Failed to login");
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError("ログインに失敗しました");
+        setError("Failed to login");
       }
     } finally {
       setLoading(false);
@@ -79,8 +78,8 @@ export default function Login() {
   };
 
   // identifierが更新されると表示
-  console.log(identifier);
-  console.log(isEmail(identifier));
+  // console.log(identifier);
+  // console.log(isEmail(identifier));
 
   return (
     <div className="flex flex-col h-screen">
@@ -91,19 +90,19 @@ export default function Login() {
       </header>
 
       <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
-        <h1 className="text-2xl mb-4">ログイン</h1>
+        <h1 className="text-2xl mb-4">Login</h1>
         <div className="w-full max-w-md">
-          <Label htmlFor="email">メールアドレス/ユーザーID</Label>
+          <Label htmlFor="email">Email / UserID</Label>
           <Input
             id="identifier"
             type="text"
             value={identifier}
             onChange={(e) => setIdentifier(toHalfWidth(e.target.value))}
             className="mb-4"
-            placeholder="メールアドレス/ユーザーIDを入力してください"
+            placeholder="Enter email / userID"
           />
 
-          <Label htmlFor="password">パスワード</Label>
+          <Label htmlFor="password">Password</Label>
           <div className="relative mb-4">
             <Input
               id="password"
@@ -113,7 +112,7 @@ export default function Login() {
               onFocus={() => setIsPasswordFocused(true)}
               onBlur={() => setIsPasswordFocused(false)}
               className="mb-4"
-              placeholder="パスワードを入力してください"
+              placeholder="Enter password"
             />
             {isPasswordFocused && (
               <button
@@ -130,12 +129,12 @@ export default function Login() {
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <Button onClick={handleLogin} disabled={loading} className="w-full">
-            {loading ? "ログイン中..." : "ログイン"}
+            {loading ? "Loading..." : "Login"}
           </Button>
 
           <div className="mt-4">
             <Link href="/signup" className="text-blue-500">
-              サインアップはこちら
+              Signup
             </Link>
           </div>
         </div>
