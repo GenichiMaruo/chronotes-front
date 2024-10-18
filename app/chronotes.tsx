@@ -7,6 +7,8 @@ import MemoList from "@/components/memo-list";
 import Editor from "@/components/editor";
 import type { Memo } from "@/lib/types";
 import { ApiHandler } from "@/hooks/use-api";
+import { FaRegPenToSquare } from "react-icons/fa6";
+import { FaPen, FaCheck } from "react-icons/fa";
 
 // カスタムフック：画面サイズがlg以下かどうかを判定
 function useMediaQuery(query: string): boolean {
@@ -38,6 +40,7 @@ export default function Chronotes() {
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [loadingDates, setLoadingDates] = useState<Date[]>([]); // 読み込み中の日付リスト
+  const [editable, setEditable] = useState(false); // 編集可能かどうか
 
   // loadingDatesが変更されるたびにコンソールに出力
   useEffect(() => {
@@ -216,7 +219,13 @@ export default function Chronotes() {
             setSelectedMemo={setSelectedMemo}
           />
         </aside>
-
+        
+        <button
+          onClick={() => setEditable(!editable)}
+          className="fixed bottom-4 right-4 z-50 p-2 rounded-full bg-white shadow-md"
+        >
+          {editable ? <FaCheck size={24} /> : <FaPen size={24} />}
+        </button>
         {/* メインエリア */}
         <main className="flex-1">
           {isMobile ? (
@@ -246,6 +255,7 @@ export default function Chronotes() {
                   selectedMemo={selectedMemo}
                   setMemos={setMemos}
                   memos={memos}
+                  isEditable={editable}
                 />
               )}
             </div>
