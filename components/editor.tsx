@@ -38,10 +38,9 @@ type EditorProps = {
   selectedMemo: Memo;
   setMemos: React.Dispatch<React.SetStateAction<Memo[]>>;
   memos: Memo[];
-  isEditable: boolean;
 };
 
-export default function Editor({ selectedMemo, setMemos, memos, isEditable }: EditorProps) {
+export default function Editor({ selectedMemo, setMemos, memos }: EditorProps) {
   const [charCount, setCharCount] = useState(selectedMemo?.charCount || 0); // 初期値をメモの文字数に設定
   const floatingToolbarRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +71,6 @@ export default function Editor({ selectedMemo, setMemos, memos, isEditable }: Ed
       Link,
     ],
     content: selectedMemo ? selectedMemo.content : "", // selectedMemoが存在する場合のみ
-    editable: isEditable,
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
 
@@ -146,14 +144,14 @@ export default function Editor({ selectedMemo, setMemos, memos, isEditable }: Ed
 
   return (
     <>
-      {editor && isEditable && <Toolbar editor={editor} />}
+      {editor && <Toolbar editor={editor} />}
       <EditorContent editor={editor} className="p-5" />
       <div
         id="floating-toolbar"
         ref={floatingToolbarRef}
         className="absolute hidden z-10 bg-white border border-gray-300 rounded shadow-md "
       >
-        {editor && isEditable && <Floating editor={editor} />}
+        {editor && <Floating editor={editor} />}
       </div>
     </>
   );
