@@ -7,7 +7,6 @@ import MemoList from "@/components/memo-list";
 import Editor from "@/components/editor";
 import type { Memo } from "@/lib/types";
 import { ApiHandler } from "@/hooks/use-api";
-import { FaRegPenToSquare } from "react-icons/fa6";
 import { FaPen, FaCheck } from "react-icons/fa";
 
 // カスタムフック：画面サイズがlg以下かどうかを判定
