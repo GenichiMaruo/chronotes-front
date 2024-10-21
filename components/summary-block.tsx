@@ -80,7 +80,7 @@ export default function SummaryBlock() {
         return "Failed to fetch summary";
       }
     },
-    [ApiHandler],
+    [],
   );
 
   useEffect(() => {
