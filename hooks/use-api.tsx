@@ -1,6 +1,8 @@
 import { getCookie, deleteCookie } from "@/lib/cookie";
 
 const API_URL = "https://chronotes.yashikota.com/api/v1";
+const REQUEST_LIMIT = 5; // 5リクエストまで
+const TIME_WINDOW = 10000; // 10秒間
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -11,6 +13,9 @@ interface ApiRequestOptions {
   headers?: Record<string, string>;
 }
 
+let requestCount = 0;
+let firstRequestTime: number | null = null;
+
 export const ApiHandler = () => {
   const token = getCookie("token");
 
@@ -20,6 +25,28 @@ export const ApiHandler = () => {
     body,
     headers = {},
   }: ApiRequestOptions) => {
+    const now = Date.now();
+
+    // 最初のリクエスト時間が未設定なら設定
+    if (!firstRequestTime) {
+      firstRequestTime = now;
+    }
+
+    // 時間ウィンドウが過ぎたらカウントをリセット
+    if (now - firstRequestTime > TIME_WINDOW) {
+      requestCount = 0;
+      firstRequestTime = now;
+    }
+
+    // リクエスト回数をチェック
+    if (requestCount >= REQUEST_LIMIT) {
+      console.error("リクエスト制限: 短期間でのリクエストが多すぎます。");
+      throw new Error("Request limit exceeded. Please try again later.");
+    }
+
+    // リクエスト回数を増加
+    requestCount++;
+
     const requestHeaders: HeadersInit = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",

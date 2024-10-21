@@ -102,16 +102,17 @@ export default function Chronotes() {
           const dateParam = encodeURIComponent(selectedDate.toISOString());
           const data = await apiRequest({
             method: "GET",
-            url: `/notes/note?date=${dateParam}`,
+            url: `/notes?from=${dateParam}&to=${dateParam}&fields=note_id,title,content,length,tags`,
           });
 
           if (data) {
             const tags = data.tags ? data.tags.split(",") : [];
             const newMemo: Memo = {
-              id: selectedDate.getTime(),
+              id: data.note_id,
               date: selectedDate.toISOString(),
               title: data.title || "no title",
               content: data.content || "no contents",
+              length: data.length,
               tags: tags || [],
             };
 
@@ -159,27 +160,33 @@ export default function Chronotes() {
         // APIリクエストをuseApiフックで行う
         const response = await apiRequest({
           method: "GET",
-          url: `/notes/list?from=${fromEncoded}&to=${to}`,
+          url: `/notes?from=${fromEncoded}&to=${to}&fields=note_id,createdAt,title,tags,content`,
         });
 
         // メモデータが取得できた場合に処理
-        const data = response.notes || [];
+        const data = response || [];
         if (data.length > 0) {
           const newMemos = data.map(
-            (item: { date: string; title: string; tags: string }) => {
+            (item: {
+              note_id: string;
+              createdAt: string;
+              title: string;
+              tags: string;
+              content: string;
+            }) => {
               // タグがカンマ区切りかつ改行を含む場合、改行を除去
               const tags = item.tags
                 ? item.tags.replace(/\\n/g, "").split(",")
                 : [];
 
               return {
-                id: new Date(item.date).getTime(), // 日付をUNIXタイムスタンプに変換
-                date: item.date,
-                title: item.title ? item.title.trim() : "no title", // タイトルが存在しない場合は'default title'とする
+                id: item.note_id, // note_idを利用
+                date: item.createdAt, // createdAtを使用
+                title: item.title ? item.title.trim() : "no title",
                 tags: tags,
-                content: "", // コンテンツは最初に取得しない
+                content: item.content || "", // contentも取得
               };
-            },
+            }
           );
 
           setMemos(newMemos);
@@ -218,7 +225,7 @@ export default function Chronotes() {
             setSelectedMemo={setSelectedMemo}
           />
         </aside>
-        
+
         <button
           onClick={() => setEditable(!editable)}
           className="fixed bottom-4 right-4 z-50 p-2 rounded-full bg-white shadow-md"
