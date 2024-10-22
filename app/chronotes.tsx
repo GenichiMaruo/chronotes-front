@@ -100,10 +100,11 @@ export default function Chronotes() {
         try {
           // APIからデータを取得
           const dateParam = encodeURIComponent(selectedDate.toISOString());
-          const data = await apiRequest({
+          const result = await apiRequest({
             method: "GET",
-            url: `/notes?from=${dateParam}&to=${dateParam}&fields=note_id,title,content,length,tags`,
+            url: `/notes?from=${dateParam}&to=${dateParam}&fields=note_id,created_at,title,content,length,tags`,
           });
+          const data = result.notes[0];
 
           if (data) {
             const tags = data.tags ? data.tags.split(",") : [];
@@ -126,10 +127,24 @@ export default function Chronotes() {
             // contentの\nを改行に変換
             newMemo.content = newMemo.content.replace(/\\n/g, "\n");
 
-            const updatedMemos = [...parsedMemos, newMemo];
-            setMemos(updatedMemos);
-            localStorage.setItem("memos", JSON.stringify(updatedMemos));
-            setSelectedMemo(newMemo);
+            // idが一致するメモがあれば更新、なければ追加
+            const index = parsedMemos.findIndex(
+              (memo) => memo.id === newMemo.id,
+            );
+            if (index >= 0) {
+              const updatedMemos = [...parsedMemos];
+              updatedMemos[index] = newMemo;
+              setMemos(updatedMemos);
+              localStorage.setItem("memos", JSON.stringify(updatedMemos));
+              setSelectedMemo(newMemo);
+            } else {
+              setMemos([...parsedMemos, newMemo]);
+              localStorage.setItem(
+                "memos",
+                JSON.stringify([...parsedMemos, newMemo]),
+              );
+              setSelectedMemo(newMemo);
+            }
           }
         } catch (error) {
           console.error("Error fetching notes:", error);
@@ -160,16 +175,16 @@ export default function Chronotes() {
         // APIリクエストをuseApiフックで行う
         const response = await apiRequest({
           method: "GET",
-          url: `/notes?from=${fromEncoded}&to=${to}&fields=note_id,createdAt,title,tags,content`,
+          url: `/notes?from=${fromEncoded}&to=${to}&fields=note_id,created_at,title,length,tags,content`,
         });
 
         // メモデータが取得できた場合に処理
-        const data = response || [];
+        const data = response.notes || [];
         if (data.length > 0) {
           const newMemos = data.map(
             (item: {
               note_id: string;
-              createdAt: string;
+              created_at: string;
               title: string;
               tags: string;
               content: string;
@@ -181,10 +196,10 @@ export default function Chronotes() {
 
               return {
                 id: item.note_id, // note_idを利用
-                date: item.createdAt, // createdAtを使用
+                date: item.created_at, // created_atを使用
                 title: item.title ? item.title.trim() : "no title",
                 tags: tags,
-                content: item.content || "", // contentも取得
+                content: item.content ? item.content.trim() : "no contents",
               };
             }
           );
