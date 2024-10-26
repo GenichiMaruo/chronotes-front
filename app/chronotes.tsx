@@ -113,8 +113,8 @@ export default function Chronotes() {
               date: selectedDate.toISOString(),
               title: data.title || "no title",
               content: data.content || "no contents",
-              length: data.length,
               tags: tags || [],
+              charCount: data.length,
             };
 
             // contentの先頭と最後の""を削除
@@ -188,6 +188,7 @@ export default function Chronotes() {
               title: string;
               tags: string;
               content: string;
+              length: number;
             }) => {
               // タグがカンマ区切りかつ改行を含む場合、改行を除去
               const tags = item.tags
@@ -200,6 +201,7 @@ export default function Chronotes() {
                 title: item.title ? item.title.trim() : "no title",
                 tags: tags,
                 content: item.content ? item.content.trim() : "no contents",
+                charCount: item.length,
               };
             }
           );
