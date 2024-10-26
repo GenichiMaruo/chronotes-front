@@ -13,7 +13,6 @@ import { FaPen, FaCheck, FaChartBar } from "react-icons/fa";
 const SummaryView = () => {
   return (
     <div className="h-full p-4">
-      <h2 className="text-2xl font-bold mb-4">Summary View</h2>
       <SummaryBlock />
     </div>
   );
@@ -264,8 +263,8 @@ export default function Chronotes() {
             <button
               onClick={() => setShowSummary(!showSummary)}
               className={`w-full mt-4 p-2 flex items-center justify-center gap-2 rounded-md transition-colors ${showSummary
-                  ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
+                ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                : "bg-blue-500 text-white hover:bg-blue-600"
                 }`}
             >
               <FaChartBar />
