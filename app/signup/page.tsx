@@ -15,6 +15,7 @@ import {
   validateUserId,
   validateEmail,
   validatePassword,
+  validateRequired,
 } from "@/lib/validation";
 
 export default function Signup() {
@@ -48,8 +49,13 @@ export default function Signup() {
     const userIdErr = validateUserId(userid, 3, 10);
     const emailErr = validateEmail(email);
     const passwordErr = validatePassword(password, confirmPassword);
+    const requiredErr = validateRequired(username, userid, email, password, confirmPassword);
     
-    if (usernameErr || userIdErr || emailErr || passwordErr) {
+    if (requiredErr) {
+      setError(requiredErr);
+      setLoading(false);
+      return;
+    }else if (usernameErr || userIdErr || emailErr || passwordErr) {
       setUsernameError(usernameErr || "");
       setUserIdError(userIdErr || "");
       setEmailError(emailErr || "");
@@ -196,9 +202,13 @@ export default function Signup() {
             </div>
           </div>  
 
-          <Button onClick={handleSignup} disabled={loading} className="w-full">
-            {loading ? "Loading..." : "Sign Up"}
-          </Button>
+          {/* Error Message */}
+          <div className="relative mb-6">
+            {error && <ErrorPopup message={error} />}
+            <Button onClick={handleSignup} disabled={loading} className="w-full">
+              {loading ? "Loading..." : "Sign Up"}
+            </Button>
+          </div>
 
           <div className="mt-4">
             <Link href="/login" className="text-blue-500">
