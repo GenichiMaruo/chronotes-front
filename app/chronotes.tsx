@@ -54,7 +54,7 @@ export default function Chronotes() {
   const handleMemoSelect = (memo: Memo) => {
     setSelectedMemo(memo);
     setShowSummary(false); // サマリービューから1日表示に切り替え
-    const memoDate = new Date(memo.date);
+    const memoDate = new Date(memo.created_at);
     setDate(memoDate); // カレンダーの選択日も更新
   };
 
