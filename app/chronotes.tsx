@@ -308,22 +308,6 @@ export default function Chronotes() {
           </div>
         </aside>
 
-        {/* 編集・閲覧モード */}
-        <button
-          onClick={() => {
-            if (editable) {
-              saveMemo(selectedMemo);
-            }
-            setSidebarVisible(false);
-            setEditable(!editable);
-          }}
-          className="fixed w-[5em] h-[5em] bottom-4 right-4 z-50 p-2 rounded-full border shadow-md bg-white dark:bg-gray-800 dark:shadow-gray-900"
-        > 
-          <div className="flex items-center justify-center text-black dark:text-white">
-            {editable ? <FaCheck size={30} /> : <FaPen size={30} />}
-          </div>
-        </button>
-
         {/* メインエリア */}
         <main className="flex-1">
           {isMobile ? (
@@ -340,7 +324,7 @@ export default function Chronotes() {
             {showSummary ? (
               <SummaryBlock />
             ) : (
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto relative">
                 {loadingDates.some(
                   (loadingDate) => loadingDate.getTime() === date?.getTime()
                 ) ? (
@@ -353,6 +337,20 @@ export default function Chronotes() {
                     isEditable={editable}
                   />
                 )}
+                <button
+                  onClick={() => {
+                    if (editable) {
+                      saveMemo(selectedMemo);
+                    }
+                    setSidebarVisible(false);
+                    setEditable(!editable);
+                  }}
+                  className="absolute w-[5em] h-[5em] bottom-4 right-4 z-50 p-2 rounded-full border shadow-md bg-white dark:bg-gray-800 dark:shadow-gray-900"
+                > 
+                  <div className="flex items-center justify-center text-black dark:text-white">
+                    {editable ? <FaCheck size={30} /> : <FaPen size={30} />}
+                  </div>
+                </button>
               </div>
             )}
           </div>
