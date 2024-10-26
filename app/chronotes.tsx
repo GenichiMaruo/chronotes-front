@@ -54,7 +54,7 @@ export default function Chronotes() {
   const handleMemoSelect = (memo: Memo) => {
     setSelectedMemo(memo);
     setShowSummary(false); // サマリービューから1日表示に切り替え
-    const memoDate = new Date(memo.date);
+    const memoDate = new Date(memo.created_at);
     setDate(memoDate); // カレンダーの選択日も更新
   };
 
@@ -101,7 +101,7 @@ export default function Chronotes() {
       const savedMemos = localStorage.getItem("memos");
       const parsedMemos: Memo[] = savedMemos ? JSON.parse(savedMemos) : [];
       const existingMemo = parsedMemos.find(
-        (memo) => memo.date === selectedDate.toISOString(),
+        (memo) => memo.created_at === selectedDate.toISOString(),
       );
 
       if (existingMemo) {
@@ -119,20 +119,23 @@ export default function Chronotes() {
           const dateParam = encodeURIComponent(selectedDate.toISOString());
           const result = await apiRequest({
             method: "GET",
-            url: `/notes?from=${dateParam}&to=${dateParam}&fields=note_id,created_at,title,content,length,tags`,
+            url: `/notes?from=${dateParam}&to=${dateParam}&fields=note_id,user_id,title,content,length,tags,created_at,updated_at`,
           });
           const data = result.notes[0];
 
           if (data) {
             const tags = data.tags ? data.tags.split(",") : [];
             const newMemo: Memo = {
-              id: data.note_id,
-              date: selectedDate.toISOString(),
+              note_id: data.note_id,
+              user_id: data.user_id,
               title: data.title || "no title",
               content: data.content || "no contents",
               tags: tags || [],
               charCount: data.length,
+              created_at: data.created_at || selectedDate.toISOString(),
+              updated_at: data.updated_at,
             };
+            console.log("Data fetched:", selectedDate.toISOString());
 
             // contentの先頭と最後の""を削除
             if (
@@ -146,7 +149,7 @@ export default function Chronotes() {
 
             // idが一致するメモがあれば更新、なければ追加
             const index = parsedMemos.findIndex(
-              (memo) => memo.id === newMemo.id,
+              (memo) => memo.note_id === newMemo.note_id,
             );
             if (index >= 0) {
               const updatedMemos = [...parsedMemos];
@@ -181,7 +184,14 @@ export default function Chronotes() {
   }, [date]);
 
   useEffect(() => {
-    const fetchWeeklyMemos = async () => {
+    const fetchWeeklyMemos = async (selectedDate: Date) => {
+      // ローディング中であれば再びリクエストしない
+      if (
+        loadingDates.some((date) => date.getTime() === selectedDate.getTime())
+      ) {
+        return;
+      }
+
       const now = new Date();
       const to = encodeURIComponent(now.toISOString());
       const from = new Date(now);
@@ -192,7 +202,7 @@ export default function Chronotes() {
         // APIリクエストをuseApiフックで行う
         const response = await apiRequest({
           method: "GET",
-          url: `/notes?from=${fromEncoded}&to=${to}&fields=note_id,created_at,title,length,tags,content`,
+          url: `/notes?from=${fromEncoded}&to=${to}&fields=note_id,user_id,title,content,length,tags,created_at,updated_at`,
         });
 
         // メモデータが取得できた場合に処理
@@ -201,11 +211,13 @@ export default function Chronotes() {
           const newMemos = data.map(
             (item: {
               note_id: string;
-              created_at: string;
+              user_id: string;
               title: string;
-              tags: string;
               content: string;
               length: number;
+              tags: string;
+              created_at: string,
+              updated_at: string;
             }) => {
               // タグがカンマ区切りかつ改行を含む場合、改行を除去
               const tags = item.tags
@@ -213,14 +225,16 @@ export default function Chronotes() {
                 : [];
 
               return {
-                id: item.note_id, // note_idを利用
-                date: item.created_at, // created_atを使用
-                title: item.title ? item.title.trim() : "no title",
-                tags: tags,
-                content: item.content ? item.content.trim() : "no contents",
+                note_id: item.note_id,
+                user_id: item.user_id,
+                title: item.title || "no title",
+                content: item.content || "no contents",
+                tags: tags || [],
                 charCount: item.length,
+                created_at: item.created_at,
+                updated_at: item.updated_at,
               };
-            }
+            },
           );
 
           setMemos(newMemos);
@@ -231,8 +245,39 @@ export default function Chronotes() {
       }
     };
 
-    fetchWeeklyMemos();
-  }, []);
+    if (date) {
+      fetchWeeklyMemos(date);
+    }
+  }, [date]);
+
+  // 編集から閲覧モードに切り替わる際にAPIを呼び出してメモを保存
+  useEffect(() => {
+    const saveMemo = async (selectedMemo: Memo) => {
+      try {
+        await apiRequest({
+          method: "PUT",
+          url: `/notes`,
+          body: {
+            user_id: selectedMemo.user_id,
+            note_id: selectedMemo.note_id,
+            title: selectedMemo.title,
+            content: selectedMemo.content,
+            tags: selectedMemo.tags.join(","),
+            createdAt: selectedMemo.created_at,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+        console.log("Memo saved successfully.");
+      } catch (error) {
+        console.error("Error saving memo:", error);
+      }
+    };
+
+    // 閲覧モードに戻ったときにAPIを呼び出す
+    if (!editable) {
+      saveMemo(selectedMemo);
+    }
+  }, [editable]);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -279,7 +324,10 @@ export default function Chronotes() {
         </aside>
 
         <button
-          onClick={() => setEditable(!editable)}
+          onClick={() => {
+            setEditable(!editable);
+            setSidebarVisible(false);
+          }}
           className="fixed bottom-4 right-4 z-50 p-2 rounded-full bg-white shadow-md"
         >
           {editable ? <FaCheck size={24} /> : <FaPen size={24} />}

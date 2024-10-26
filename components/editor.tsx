@@ -85,7 +85,7 @@ export default function Editor({ selectedMemo, setMemos, memos, isEditable }: Ed
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, content, charCount: newCharCount };
       const updatedMemos = memos.map((memo) =>
-        memo.id === selectedMemo.id ? updatedMemo : memo,
+        memo.note_id === selectedMemo.note_id ? updatedMemo : memo,
       );
 
       setMemos(updatedMemos);
@@ -114,7 +114,7 @@ export default function Editor({ selectedMemo, setMemos, memos, isEditable }: Ed
       // selectedMemo に文字数を保存
       const updatedMemo = { ...selectedMemo, charCount: initialCharCount };
       const updatedMemos = memos.map((memo) =>
-        memo.id === selectedMemo.id ? updatedMemo : memo,
+        memo.note_id === selectedMemo.note_id ? updatedMemo : memo,
       );
       setMemos(updatedMemos);
       localStorage.setItem("memos", JSON.stringify(updatedMemos));
