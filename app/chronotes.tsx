@@ -242,33 +242,27 @@ export default function Chronotes() {
   }, [date]);
 
   // 編集から閲覧モードに切り替わる際にAPIを呼び出してメモを保存
-  useEffect(() => {
-    const saveMemo = async (selectedMemo: Memo) => {
-      try {
-        await apiRequest({
-          method: "PUT",
-          url: `/notes`,
-          body: {
-            user_id: selectedMemo.user_id,
-            note_id: selectedMemo.note_id,
-            title: selectedMemo.title,
-            content: selectedMemo.content,
-            tags: selectedMemo.tags.join(","),
-            createdAt: selectedMemo.created_at,
-            updatedAt: new Date().toISOString(),
-          },
-        });
-        console.log("Memo saved successfully.");
-      } catch (error) {
-        console.error("Error saving memo:", error);
-      }
-    };
-
-    // 閲覧モードに戻ったときにAPIを呼び出す
-    if (!editable) {
-      saveMemo(selectedMemo);
+  const saveMemo = async (selectedMemo: Memo) => {
+    try {
+      await apiRequest({
+        method: "PUT",
+        url: `/notes`,
+        body: {
+          user_id: selectedMemo.user_id,
+          note_id: selectedMemo.note_id,
+          title: selectedMemo.title,
+          content: selectedMemo.content,
+          tags: selectedMemo.tags.join(","),
+          createdAt: selectedMemo.created_at,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      console.log("Memo saved successfully.");
+      console.log(selectedMemo);
+    } catch (error) {
+      console.error("Error saving memo:", error);
     }
-  }, [editable]);
+  };
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -316,8 +310,11 @@ export default function Chronotes() {
 
         <button
           onClick={() => {
-            setEditable(!editable);
+            if (editable) {
+              saveMemo(selectedMemo);
+            }
             setSidebarVisible(false);
+            setEditable(!editable);
           }}
           className="fixed bottom-4 right-4 z-50 p-2 rounded-full bg-white shadow-md"
         >
@@ -350,8 +347,6 @@ export default function Chronotes() {
                 ) : (
                   <Editor
                     selectedMemo={selectedMemo}
-                    setMemos={setMemos}
-                    memos={memos}
                     isEditable={editable}
                   />
                 )}
