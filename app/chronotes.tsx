@@ -284,6 +284,7 @@ export default function Chronotes() {
               onSelect={(newDate) => {
                 setDate(newDate);
                 setShowSummary(false); // カレンダーで日付を選択した際もサマリービューを解除
+                setEditable(false); // カレンダーで日付を選択した際も編集モードを解除
               }}
               memoData={memos}
               className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? "mt-20" : ""
