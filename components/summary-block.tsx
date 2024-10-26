@@ -1,148 +1,130 @@
-"use client";
+'use client'
 
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MinimizeIcon, MaximizeIcon } from "lucide-react";
-import { ApiHandler } from "@/hooks/use-api";
+import { useState, useEffect, useCallback } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { ApiHandler } from "@/hooks/use-api"
+import WordCloud from "@/components/word-cloud"
 
-// Fetch summaries inside the component
-export default function SummaryBlock() {
-  const [summaries, setSummaries] = useState<Record<string, string>>({
-    today: "",
-    week: "",
-    month: "",
-    quarter: "",
-    year: "",
-  });
-  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({
-    today: true,
-    week: false,
-    month: false,
-    quarter: false,
-    year: false,
-  });
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState("today");
+const timePeriods = [
+  { value: "5d", label: "Last 5 days" },
+  { value: "1w", label: "Last week" },
+  { value: "2w", label: "Last 2 weeks" },
+  { value: "1m", label: "Last month" },
+  { value: "3m", label: "Last 3 months" },
+  { value: "6m", label: "Last 6 months" },
+  { value: "1y", label: "Last year" },
+]
 
-  // Helper function to format the date range for each period
+export default function SummaryView() {
+  const [summary, setSummary] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("1w")
+  const [dateRange, setDateRange] = useState({ from: "", to: "" })
+
   const getDateRange = (period: string) => {
-    const now = new Date();
-    let fromDate: Date;
-    const toDate: Date = new Date(now);
+    const now = new Date()
+    const fromDate: Date = new Date(now)
 
     switch (period) {
-      case "today":
-        fromDate = new Date(now.setHours(0, 0, 0, 0));
-        break;
-      case "week":
-        fromDate = new Date(now.setDate(now.getDate() - 7));
-        break;
-      case "month":
-        fromDate = new Date(now.setMonth(now.getMonth() - 1));
-        break;
-      case "quarter":
-        fromDate = new Date(now.setMonth(now.getMonth() - 3));
-        break;
-      case "year":
-        fromDate = new Date(now.setFullYear(now.getFullYear() - 1));
-        break;
+      case "5d":
+        fromDate.setDate(now.getDate() - 5)
+        break
+      case "1w":
+        fromDate.setDate(now.getDate() - 7)
+        break
+      case "2w":
+        fromDate.setDate(now.getDate() - 14)
+        break
+      case "1m":
+        fromDate.setMonth(now.getMonth() - 1)
+        break
+      case "3m":
+        fromDate.setMonth(now.getMonth() - 3)
+        break
+      case "6m":
+        fromDate.setMonth(now.getMonth() - 6)
+        break
+      case "1y":
+        fromDate.setFullYear(now.getFullYear() - 1)
+        break
       default:
-        throw new Error("Invalid period");
+        throw new Error("Invalid period")
     }
 
     return {
       from: encodeURIComponent(fromDate.toISOString()),
-      to: encodeURIComponent(toDate.toISOString()),
-    };
-  };
+      to: encodeURIComponent(now.toISOString()),
+    }
+  }
 
-  const fetchSummary = useCallback(
-    async (period: string) => {
-      const { apiRequest } = ApiHandler();
-      const { from, to } = getDateRange(period);
-      const endpoint = `/notes/summary?from=${from}&to=${to}`;
+  const fetchSummary = useCallback(async (period: string) => {
+    const { apiRequest } = ApiHandler()
+    const { from, to } = getDateRange(period)
+    setDateRange({ from, to })
+    const endpoint = `/notes/summary?from=${from}&to=${to}`
 
-      try {
-        // APIリクエストをuseApiフックで実行
-        const data = await apiRequest({
-          method: "GET",
-          url: endpoint,
-        });
+    try {
+      setIsLoading(true)
+      const data = await apiRequest({
+        method: "GET",
+        url: endpoint,
+      })
 
-        // データが正常に取得された場合
-        if (data) {
-          return data.result;
-        }
-      } catch (error) {
-        console.error("Error fetching summary:", error);
-        return "Failed to fetch summary";
+      if (data) {
+        setSummary(data.result)
       }
-    },
-    [],
-  );
+    } catch (error) {
+      console.error("Error fetching summary:", error)
+      setSummary("Failed to fetch summary")
+    } finally {
+      setIsLoading(false)
+    }
+
+  }, [])
 
   useEffect(() => {
-    const loadSummary = async (period: string) => {
-      setLoadingStates((prev) => ({ ...prev, [period]: true }));
-      const summary = await fetchSummary(period);
-      setSummaries((prev) => ({ ...prev, [period]: summary }));
-      setLoadingStates((prev) => ({ ...prev, [period]: false }));
-    };
-
-    if (!summaries[activeTab]) {
-      loadSummary(activeTab);
-    }
-  }, [activeTab, fetchSummary, summaries]); // Add fetchSummary as a dependency
+    fetchSummary(selectedPeriod)
+  }, [selectedPeriod, fetchSummary])
 
   return (
-    <Card className={`w-full transition-all duration-300 h-auto`}>
-      <CardHeader className="flex flex-row items-center justify-between p-4">
-        <CardTitle className="text-lg font-bold">Summary Dashboard</CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsMinimized(!isMinimized)}
-          aria-label={isMinimized ? "Maximize" : "Minimize"}
-        >
-          {isMinimized ? (
-            <MaximizeIcon className="h-4 w-4" />
-          ) : (
-            <MinimizeIcon className="h-4 w-4" />
-          )}
-        </Button>
-      </CardHeader>
-      {!isMinimized && (
+    <>
+      {/* ワードクラウドの描画 */}
+      <div className="flex justify-center items-center p-4">
+        <WordCloud from={dateRange.from} to={dateRange.to} />
+      </div>
+      <Card className="w-full h-auto">
+
+        {/* サマリーの表示 */}
+        <CardHeader className="flex flex-row items-center justify-between p-4">
+          <CardTitle className="text-lg font-bold">Summary View</CardTitle>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time period" />
+            </SelectTrigger>
+            <SelectContent>
+              {timePeriods.map((period) => (
+                <SelectItem key={period.value} value={period.value}>
+                  {period.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardHeader>
         <CardContent>
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="quarter">Quarter</TabsTrigger>
-              <TabsTrigger value="year">Year</TabsTrigger>
-            </TabsList>
-            {["today", "week", "month", "quarter", "year"].map((period) => (
-              <TabsContent key={period} value={period} className="mt-4">
-                <Card>
-                  <CardContent className="p-4">
-                    {loadingStates[period] ? (
-                      <p className="text-sm">Loading {period} summary...</p>
-                    ) : (
-                      <p className="text-sm">{summaries[period]}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
+          {isLoading ? (
+            <p className="text-sm">Loading summary...</p>
+          ) : (
+            <p className="text-sm whitespace-pre-wrap">{summary}</p>
+          )}
         </CardContent>
-      )}
-    </Card>
-  );
+      </Card>
+    </>
+  )
 }

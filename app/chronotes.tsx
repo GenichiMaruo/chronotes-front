@@ -7,9 +7,17 @@ import MemoList from "@/components/memo-list";
 import Editor from "@/components/editor";
 import type { Memo } from "@/lib/types";
 import { ApiHandler } from "@/hooks/use-api";
-import { FaPen, FaCheck } from "react-icons/fa";
+import { FaPen, FaCheck, FaChartBar } from "react-icons/fa";
 
-// カスタムフック：画面サイズがlg以下かどうかを判定
+// SummaryView コンポーネント
+const SummaryView = () => {
+  return (
+    <div className="h-full p-4">
+      <SummaryBlock />
+    </div>
+  );
+};
+
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
 
@@ -33,13 +41,22 @@ export default function Chronotes() {
   });
 
   const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0]);
-  const [isSidebarVisible, setSidebarVisible] = useState(true); // 表示非表示の管理
+  const [isSidebarVisible, setSidebarVisible] = useState(true);
+  const [showSummary, setShowSummary] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const { apiRequest } = ApiHandler();
 
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [loadingDates, setLoadingDates] = useState<Date[]>([]); // 読み込み中の日付リスト
-  const [editable, setEditable] = useState(false); // 編集可能かどうか
+  const [loadingDates, setLoadingDates] = useState<Date[]>([]);
+  const [editable, setEditable] = useState(false);
+
+  // メモが選択されたときのハンドラー
+  const handleMemoSelect = (memo: Memo) => {
+    setSelectedMemo(memo);
+    setShowSummary(false); // サマリービューから1日表示に切り替え
+    const memoDate = new Date(memo.date);
+    setDate(memoDate); // カレンダーの選択日も更新
+  };
 
   // loadingDatesが変更されるたびにコンソールに出力
   useEffect(() => {
@@ -67,7 +84,7 @@ export default function Chronotes() {
 
   const [date, setDate] = React.useState<Date | undefined>(() => {
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Set the time to 00:00:00
+    now.setHours(0, 0, 0, 0);
     return now;
   });
 
@@ -265,27 +282,45 @@ export default function Chronotes() {
   return (
     <div className="flex flex-col w-full h-full">
       <div className="flex flex-1 overflow-hidden relative">
-        {/* サイドバー（エントリーリスト） */}
+        {/* サイドバー */}
         <aside
-          className={`w-[300px] lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r p-4 flex flex-col bg-white z-40 ${isSidebarVisible ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
+          className={`w-[300px] lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r flex flex-col bg-white z-40 ${isSidebarVisible ? "translate-x-0" : "-translate-x-full"
+            } lg:translate-x-0`}
           style={{
             backgroundColor: isDarkMode
               ? "rgba(31, 41, 55, 0.8)"
               : "rgba(255, 255, 255, 0.8)",
           }}
         >
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            memoData={memos}
-            className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? "mt-20" : ""}`}
-          />
-          <MemoList
-            memos={memos}
-            selectedMemo={selectedMemo}
-            setSelectedMemo={setSelectedMemo}
-          />
+          <div className="p-4">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(newDate) => {
+                setDate(newDate);
+                setShowSummary(false); // カレンダーで日付を選択した際もサマリービューを解除
+              }}
+              memoData={memos}
+              className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? "mt-20" : ""
+                }`}
+            />
+            {/* 要約ボタン */}
+            <button
+              onClick={() => setShowSummary(!showSummary)}
+              className={`w-full mt-4 p-2 flex items-center justify-center gap-2 rounded-md transition-colors ${showSummary
+                ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+            >
+              <FaChartBar />
+              <span>{showSummary ? "Show Daily View" : "View Summary"}</span>
+            </button>
+            <MemoList
+              memos={memos}
+              selectedMemo={selectedMemo}
+              setSelectedMemo={handleMemoSelect} // 新しいハンドラーを使用
+            />
+          </div>
         </aside>
 
         <button
@@ -297,6 +332,7 @@ export default function Chronotes() {
         >
           {editable ? <FaCheck size={24} /> : <FaPen size={24} />}
         </button>
+
         {/* メインエリア */}
         <main className="flex-1">
           {isMobile ? (
@@ -308,28 +344,28 @@ export default function Chronotes() {
           ) : (
             <Header isLoggedIn={true} />
           )}
-          {/* メインエリアのコンテンツ 最大幅60 */}
+          {/* メインエリアのコンテンツ */}
           <div className="px-4 flex flex-col h-[90vh] max-w-[60rem] mx-auto">
-            <div className="flex-none">
-              <SummaryBlock />
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              {/* ローディング中の日付が選択された場合はスピナーを表示 */}
-              {loadingDates.some(
-                (loadingDate) => loadingDate.getTime() === date?.getTime(),
-              ) ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mr-4"></div>
-                </div>
-              ) : (
-                <Editor
-                  selectedMemo={selectedMemo}
-                  setMemos={setMemos}
-                  memos={memos}
-                  isEditable={editable}
-                />
-              )}
-            </div>
+            {showSummary ? (
+              <SummaryView />
+            ) : (
+              <div className="flex-1 overflow-y-auto">
+                {loadingDates.some(
+                  (loadingDate) => loadingDate.getTime() === date?.getTime()
+                ) ? (
+                  <div className="flex justify-center items-center h-full">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mr-4"></div>
+                  </div>
+                ) : (
+                  <Editor
+                    selectedMemo={selectedMemo}
+                    setMemos={setMemos}
+                    memos={memos}
+                    isEditable={editable}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </main>
       </div>
