@@ -309,6 +309,7 @@ export default function Chronotes() {
           </div>
         </aside>
 
+        {/* 編集・閲覧モード */}
         <button
           onClick={() => {
             if (editable) {
@@ -317,9 +318,11 @@ export default function Chronotes() {
             setSidebarVisible(false);
             setEditable(!editable);
           }}
-          className="fixed bottom-4 right-4 z-50 p-2 rounded-full bg-white shadow-md"
-        >
-          {editable ? <FaCheck size={24} /> : <FaPen size={24} />}
+          className="fixed w-[5em] h-[5em] bottom-4 right-4 z-50 p-2 rounded-full border shadow-md bg-white dark:bg-gray-800 dark:shadow-gray-900"
+        > 
+          <div className="flex items-center justify-center text-black dark:text-white">
+            {editable ? <FaCheck size={30} /> : <FaPen size={30} />}
+          </div>
         </button>
 
         {/* メインエリア */}
