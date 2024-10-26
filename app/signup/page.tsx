@@ -8,14 +8,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { setCookie } from "@/lib/cookie";
 import { ApiHandler } from "@/hooks/use-api";
+import ErrorPopup from "@/components/error-popup";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  validateUsername,
+  validateUserId,
+  validateEmail,
+  validatePassword,
+} from "@/lib/validation";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUserName] = useState("");
   const [userid, setUserId] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordFocused1, setIsPasswordFocused1] = useState(false);
   const [isPasswordFocused2, setIsPasswordFocused2] = useState(false);
@@ -23,20 +29,31 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { apiRequest } = ApiHandler();
+  const [usernameError, setUsernameError] = useState("");
+  const [userIdError, setUserIdError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSignup = async () => {
     setLoading(true);
     setError("");
+    setUsernameError("");
+    setUserIdError("");
+    setEmailError("");
+    setPasswordError("");
 
     // バリデーションチェック
-    if (!username || !userid || !email || !password || !confirmPassword) {
-      setError("Enter all fields");
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    const usernameErr = validateUsername(username, 1, 20);
+    const userIdErr = validateUserId(userid, 3, 10);
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password, confirmPassword);
+    
+    if (usernameErr || userIdErr || emailErr || passwordErr) {
+      setUsernameError(usernameErr || "");
+      setUserIdError(userIdErr || "");
+      setEmailError(emailErr || "");
+      setPasswordError(passwordErr || "");
       setLoading(false);
       return;
     }
@@ -80,85 +97,104 @@ export default function Signup() {
       <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
         <h1 className="text-2xl mb-4">Sign Up</h1>
         <div className="w-full max-w-md">
-          <Label htmlFor="userName">UserName</Label>
-          <Input
-            id="userName"
-            type="text"
-            value={username}
-            onChange={(e) => setUserName(e.target.value)}
-            className="mb-4"
-            placeholder="Enter username"
-          />
 
-          <Label htmlFor="user_id">User ID</Label>
-          <Input
-            id="user_id"
-            type="text"
-            value={userid}
-            onChange={(e) => setUserId(e.target.value)}
-            className="mb-4"
-            placeholder="Enter user id"
-          />
-
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mb-4"
-            placeholder="Enter email"
-          />
-
-          <Label htmlFor="password">Password</Label>
-          <div className="relative mb-4">
+          {/* UserName */}
+          <div className="relative mb-6">
+            <Label htmlFor="userName">UserName</Label>
+            {usernameError && <ErrorPopup message={usernameError} />}
             <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => setIsPasswordFocused1(true)}
-              onBlur={() => setIsPasswordFocused1(false)}
+              id="userName"
+              type="text"
+              value={username}
+              onChange={(e) => setUserName(e.target.value)}
               className="mb-4"
-              placeholder="Enter password"
+              placeholder="Enter username"
             />
-            {isPasswordFocused1 && (
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            )}
           </div>
 
-          <Label htmlFor="confirmPassword">Confirm password</Label>
-          <div className="relative mb-4">
+          {/* UserID */}
+          <div className="relative mb-6">
+            <Label htmlFor="user_id">User ID</Label>
+            {userIdError && <ErrorPopup message={userIdError} />}
             <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              onFocus={() => setIsPasswordFocused2(true)}
-              onBlur={() => setIsPasswordFocused2(false)}
+              id="user_id"
+              type="text"
+              value={userid}
+              onChange={(e) => setUserId(e.target.value)}
               className="mb-4"
-              placeholder="Enter password"
+              placeholder="Enter user id"
             />
-            {isPasswordFocused2 && (
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            )}
           </div>
 
-          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {/* Email */}
+          <div className="relative mb-6">
+            <Label htmlFor="email">Email</Label>
+            {emailError && <ErrorPopup message={emailError} />}
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mb-4"
+              placeholder="Enter email"
+            />
+          </div>
+
+          {/* Password */}
+          <div className="relative mb-6">
+            <Label htmlFor="password">Password</Label>
+            {passwordError && <ErrorPopup message={passwordError} />}
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setIsPasswordFocused1(true)}
+                onBlur={() => setIsPasswordFocused1(false)}
+                className="mb-4"
+                placeholder="Enter password"
+              />
+              {isPasswordFocused1 && (
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="relative mb-6">
+            <Label htmlFor="confirmPassword">Confirm password</Label>
+            {passwordError && <ErrorPopup message={passwordError} />}
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onFocus={() => setIsPasswordFocused2(true)}
+                onBlur={() => setIsPasswordFocused2(false)}
+                className="mb-4"
+                placeholder="Enter password"
+              />
+              {isPasswordFocused2 && (
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              )}
+            </div>
+          </div>  
 
           <Button onClick={handleSignup} disabled={loading} className="w-full">
             {loading ? "Loading..." : "Sign Up"}
