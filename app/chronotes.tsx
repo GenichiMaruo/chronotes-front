@@ -9,15 +9,6 @@ import type { Memo } from "@/lib/types";
 import { ApiHandler } from "@/hooks/use-api";
 import { FaPen, FaCheck, FaChartBar } from "react-icons/fa";
 
-// SummaryView コンポーネント
-const SummaryView = () => {
-  return (
-    <div className="h-full p-4">
-      <SummaryBlock />
-    </div>
-  );
-};
-
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
 
@@ -299,7 +290,7 @@ export default function Chronotes() {
           {/* メインエリアのコンテンツ */}
           <div className="px-4 flex flex-col h-[90vh] max-w-[60rem] mx-auto">
             {showSummary ? (
-              <SummaryView />
+              <SummaryBlock />
             ) : (
               <div className="flex-1 overflow-y-auto">
                 {loadingDates.some(

@@ -95,13 +95,14 @@ export default function SummaryView() {
 
   return (
     <>
-      {/* ワードクラウドの描画 */}
+      {/* Responsive Word Cloud */}
       <div className="flex justify-center items-center p-4">
-        <WordCloud from={dateRange.from} to={dateRange.to} />
+        <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
+          <WordCloud from={dateRange.from} to={dateRange.to} />
+        </div>
       </div>
       <Card className="w-full h-auto">
-
-        {/* サマリーの表示 */}
+        {/* Display Summary */}
         <CardHeader className="flex flex-row items-center justify-between p-4">
           <CardTitle className="text-lg font-bold">Summary View</CardTitle>
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import cloud from 'd3-cloud';
 import { ApiHandler } from "@/hooks/use-api";
@@ -10,10 +10,9 @@ interface WordCloudProps {
 
 const WordCloud: React.FC<WordCloudProps> = ({ from, to }) => {
   const [wordCloudData, setWordCloudData] = useState<{ text: string; value: number }[]>([]);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const { apiRequest } = ApiHandler();
 
-
-  // fromとtoが変更されたときにタグデータをフェッチする
   useEffect(() => {
     const fetchTags = async () => {
       const endpoint = `/notes?from=${from}&to=${to}&fields=tags`;
@@ -22,8 +21,7 @@ const WordCloud: React.FC<WordCloudProps> = ({ from, to }) => {
           method: "GET",
           url: endpoint,
         });
-        
-        // 各ノートのタグを分割し、すべてのタグの頻度を集計
+
         const allTags = data.notes.flatMap((note: { tags: string }) => note.tags.split(','));
         const tagFrequency = allTags.reduce((acc: { [x: string]: number; }, tag: string) => {
           const trimmedTag = tag.trim();
@@ -31,7 +29,6 @@ const WordCloud: React.FC<WordCloudProps> = ({ from, to }) => {
           return acc;
         }, {});
 
-        // ワードクラウド用のデータ形式に変換
         const wordCloudData = Object.entries(tagFrequency).map(([text, value]) => ({ text, value: value as number }));
         setWordCloudData(wordCloudData);
       } catch (error) {
@@ -40,36 +37,37 @@ const WordCloud: React.FC<WordCloudProps> = ({ from, to }) => {
     };
 
     fetchTags();
-  }, [from, to]); // from, toが変更されるたびに再フェッチ
+  }, [from, to]);
 
-  // ワードクラウドの描画
   useEffect(() => {
     if (wordCloudData.length === 0) return;
 
     const width = 500;
     const height = 300;
 
-    // SVGの初期化
-    const svg = d3.select('#word-cloud')
-      .attr('width', width)
-      .attr('height', height)
-      .style('background', '#f0f0f0');
+    const svg = d3.select(svgRef.current)
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('width', '100%')
+      .style('height', 'auto')
 
-    // SVG内をクリア
     svg.selectAll('*').remove();
 
-    // d3-cloudによるレイアウト設定
+    const fontSizeScale = d3.scaleLinear()
+      .domain([1, d3.max(wordCloudData, d => d.value) || 1])
+      .range([10, width / 10]);
+
+    // Reduced padding between words
     const layout = cloud()
       .size([width, height])
-      .words(wordCloudData.map(d => ({ text: d.text, size: 10 + d.value * 5 })))
-      .padding(5)
-      .rotate(() => ~~(Math.random() * 2) * 90)
+      .words(wordCloudData.map(d => ({ text: d.text, size: fontSizeScale(d.value) })))
+      .padding(0)  // Reduced padding value to make words closer
+      .rotate(() => [-30, 0, 30, 90][Math.floor(Math.random() * 4)])
       .fontSize(d => d.size || 10)
       .on('end', draw);
 
     layout.start();
 
-    // ワードクラウド描画
     function draw(words: { text: string; size: number; x: number; y: number; rotate: number }[]) {
       svg.append('g')
         .attr('transform', `translate(${width / 2}, ${height / 2})`)
@@ -84,7 +82,11 @@ const WordCloud: React.FC<WordCloudProps> = ({ from, to }) => {
     }
   }, [wordCloudData]);
 
-  return <svg id="word-cloud"></svg>;
+  return (
+    <div className="w-full">
+      <svg ref={svgRef} className="mx-auto" />
+    </div>
+  );
 };
 
 export default WordCloud;
