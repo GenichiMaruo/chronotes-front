@@ -31,7 +31,10 @@ function Calendar({
   // 各メモの日付を modifiers に一日ずつ追加
   const modifiers: Record<string, Date[]> = memoData.reduce(
     (acc, memo) => {
-      const date = new Date(memo.date);
+      const date = new Date(memo.created_at);
+      if (isNaN(date.getTime())) {
+        return acc;
+      }
       const key = date.toISOString().split("T")[0]; // 日付を "YYYY-MM-DD" 形式に変換
       if (!acc[key]) {
         acc[key] = [];
@@ -45,7 +48,11 @@ function Calendar({
   // 文字数に応じたスタイルを生成
   const modifiersStyles: Record<string, React.CSSProperties> = memoData.reduce(
     (styles, memo) => {
-      const dateKey = new Date(memo.date).toISOString().split("T")[0];
+      const date = new Date(memo.created_at);
+      if (isNaN(date.getTime())) {
+        return styles;
+      }
+      const dateKey = new Date(memo.created_at).toISOString().split("T")[0];
       const bkg = getBackgroundColor(memo.charCount ?? 0);
       styles[dateKey] = { backgroundColor: bkg };
       return styles;
