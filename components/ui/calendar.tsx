@@ -19,6 +19,9 @@ function Calendar({
   memoData,
   ...props
 }: CalendarProps) {
+
+
+  // 文字数に応じた背景色を生成
   const getBackgroundColor = (charCount: number) => {
     if (charCount === 0) {
       return "transparent";
@@ -28,6 +31,7 @@ function Calendar({
     const color = `rgba(0, 100, 0, ${intensity})`;
     return color;
   };
+
   // 各メモの日付を modifiers に一日ずつ追加
   const modifiers: Record<string, Date[]> = memoData.reduce(
     (acc, memo) => {

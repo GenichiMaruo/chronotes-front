@@ -287,8 +287,7 @@ export default function Chronotes() {
                 setEditable(false); // カレンダーで日付を選択した際も編集モードを解除
               }}
               memoData={memos}
-              className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? "mt-20" : ""
-                }`}
+              className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? "mt-20" : ""}`}
             />
             {/* 要約ボタン */}
             <button
