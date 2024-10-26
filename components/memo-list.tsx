@@ -18,12 +18,12 @@ const MemoList: React.FC<MemoListProps> = ({
       <div className="w-[250px] truncate">
         {memos
           .sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
           )
           .map((memo) => (
             <div
-              key={memo.id}
-              className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.id === memo.id ? "bg-secondary" : "hover:bg-secondary/50"}`}
+              key={memo.note_id}
+              className={`p-2 mb-2 cursor-pointer rounded group ${selectedMemo.note_id === memo.note_id ? "bg-secondary" : "hover:bg-secondary/50"}`}
               onClick={() => setSelectedMemo(memo)}
             >
               <div className="flex justify-between items-center w-auto">
@@ -51,7 +51,7 @@ const MemoList: React.FC<MemoListProps> = ({
                   </div>
                   {/* 時間の表示 */}
                   <div className="text-xs text-muted-foreground">
-                    {new Date(memo.date).toLocaleString("en-US", {
+                    {new Date(memo.created_at).toLocaleString("en-US", {
                       year: "numeric",
                       month: "short",
                       day: "numeric",
