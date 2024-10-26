@@ -1,7 +1,7 @@
 import { getCookie, deleteCookie } from "@/lib/cookie";
 
 const API_URL = "https://chronotes.yashikota.com/api/v1";
-const REQUEST_LIMIT = 30; // 5リクエストまで
+const REQUEST_LIMIT = 30; // 10リクエストまで
 const TIME_WINDOW = 5000; // 5秒間
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
