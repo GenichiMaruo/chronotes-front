@@ -79,6 +79,12 @@ export default function Chronotes() {
     return now;
   });
 
+  // 別のメモが選択されたらサイドバーを閉じる
+  useEffect(() => {
+    setSidebarVisible(false);
+  }, [selectedMemo]);
+
+  // 日付が変更されたらメモデータを取得
   useEffect(() => {
     const fetchMemoData = async (selectedDate: Date) => {
       // ローディング中であれば再びリクエストしない
