@@ -13,12 +13,14 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 // メールバリデーション関数
 const isEmail = (value: string) => {
   const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-  return re.test(value.replace(/\s+/g, '').trim()); // 不可視文字を削除
+  return re.test(value.replace(/\s+/g, "").trim()); // 不可視文字を削除
 };
 
 // 全角を半角に変換する関数
 const toHalfWidth = (value: string) => {
-  return value.replace(/[！-～]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+  return value.replace(/[！-～]/g, (s) =>
+    String.fromCharCode(s.charCodeAt(0) - 0xfee0),
+  );
 };
 
 export default function Login() {
@@ -40,7 +42,7 @@ export default function Login() {
       setLoading(false);
       return;
     }
-  
+
     try {
       const body = {
         email: isEmail(identifier) ? identifier : "",
@@ -77,6 +79,12 @@ export default function Login() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  };
+
   // identifierが更新されると表示
   // console.log(identifier);
   // console.log(isEmail(identifier));
@@ -98,6 +106,7 @@ export default function Login() {
             type="text"
             value={identifier}
             onChange={(e) => setIdentifier(toHalfWidth(e.target.value))}
+            onKeyDown={handleKeyDown}
             className="mb-4"
             placeholder="Enter email / userID"
           />
@@ -111,6 +120,7 @@ export default function Login() {
               onChange={(e) => setPassword(toHalfWidth(e.target.value))}
               onFocus={() => setIsPasswordFocused(true)}
               onBlur={() => setIsPasswordFocused(false)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter password"
             />
