@@ -79,6 +79,12 @@ export default function Chronotes() {
     return now;
   });
 
+  // 別のメモが選択されたらサイドバーを閉じる
+  useEffect(() => {
+    setSidebarVisible(false);
+  }, [selectedMemo]);
+
+  // 日付が変更されたらメモデータを取得
   useEffect(() => {
     const fetchMemoData = async (selectedDate: Date) => {
       // ローディング中であれば再びリクエストしない
@@ -242,33 +248,28 @@ export default function Chronotes() {
   }, [date]);
 
   // 編集から閲覧モードに切り替わる際にAPIを呼び出してメモを保存
-  useEffect(() => {
-    const saveMemo = async (selectedMemo: Memo) => {
-      try {
-        await apiRequest({
-          method: "PUT",
-          url: `/notes`,
-          body: {
-            user_id: selectedMemo.user_id,
-            note_id: selectedMemo.note_id,
-            title: selectedMemo.title,
-            content: selectedMemo.content,
-            tags: selectedMemo.tags.join(","),
-            createdAt: selectedMemo.created_at,
-            updatedAt: new Date().toISOString(),
-          },
-        });
-        console.log("Memo saved successfully.");
-      } catch (error) {
-        console.error("Error saving memo:", error);
-      }
-    };
-
-    // 閲覧モードに戻ったときにAPIを呼び出す
-    if (!editable) {
-      saveMemo(selectedMemo);
+  const saveMemo = async (selectedMemo: Memo) => {
+    try {
+      await apiRequest({
+        method: "PUT",
+        url: `/notes`,
+        body: {
+          user_id: selectedMemo.user_id,
+          note_id: selectedMemo.note_id,
+          title: selectedMemo.title,
+          content: selectedMemo.content,
+          tags: selectedMemo.tags.join(","),
+          createdAt: selectedMemo.created_at,
+          updatedAt: new Date().toISOString(),
+          length: selectedMemo.charCount,
+        },
+      });
+      console.log("Memo saved successfully.");
+      console.log(selectedMemo);
+    } catch (error) {
+      console.error("Error saving memo:", error);
     }
-  }, [editable]);
+  };
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -290,10 +291,10 @@ export default function Chronotes() {
               onSelect={(newDate) => {
                 setDate(newDate);
                 setShowSummary(false); // カレンダーで日付を選択した際もサマリービューを解除
+                setEditable(false); // カレンダーで日付を選択した際も編集モードを解除
               }}
               memoData={memos}
-              className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? "mt-20" : ""
-                }`}
+              className={`rounded-md border flex justify-center transition-all duration-300 ${isMobile ? "mt-20" : ""}`}
             />
             {/* 要約ボタン */}
             <button
@@ -314,16 +315,6 @@ export default function Chronotes() {
           </div>
         </aside>
 
-        <button
-          onClick={() => {
-            setEditable(!editable);
-            setSidebarVisible(false);
-          }}
-          className="fixed bottom-4 right-4 z-50 p-2 rounded-full bg-white shadow-md"
-        >
-          {editable ? <FaCheck size={24} /> : <FaPen size={24} />}
-        </button>
-
         {/* メインエリア */}
         <main className="flex-1">
           {isMobile ? (
@@ -340,7 +331,11 @@ export default function Chronotes() {
             {showSummary ? (
               <SummaryBlock />
             ) : (
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto relative">
+                <div className="sticky top-0  bg-white dark:bg-gray-800 z-10 shadow-sm p-4">
+                  <h2 className="text-lg font-semibold">{selectedMemo.title || "Untitled Memo"}</h2>
+                  <p className="text-gray-500">{new Date(selectedMemo.created_at).toLocaleDateString()}</p>
+                </div>
                 {loadingDates.some(
                   (loadingDate) => loadingDate.getTime() === date?.getTime()
                 ) ? (
@@ -350,11 +345,24 @@ export default function Chronotes() {
                 ) : (
                   <Editor
                     selectedMemo={selectedMemo}
-                    setMemos={setMemos}
-                    memos={memos}
                     isEditable={editable}
                   />
                 )}
+                <button
+                  onClick={() => {
+                    if (editable) {
+                      saveMemo(selectedMemo);
+                    }
+                    setSidebarVisible(false);
+                    setEditable(!editable);
+                  }}
+                  className="sticky w-[5em] h-[5em] bottom-4 right-[3em] z-50 p-2 rounded-full border shadow-md bg-white dark:bg-gray-800 dark:shadow-gray-900"
+                  style={{ position: "fixed" }}
+                > 
+                  <div className="flex items-center justify-center text-black dark:text-white">
+                    {editable ? <FaCheck size={30} /> : <FaPen size={30} />}
+                  </div>
+                </button>
               </div>
             )}
           </div>

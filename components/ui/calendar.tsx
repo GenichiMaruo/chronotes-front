@@ -19,15 +19,21 @@ function Calendar({
   memoData,
   ...props
 }: CalendarProps) {
-  const getBackgroundColor = (charCount: number) => {
+  
+  // 最大文字数を取得
+  const maxCharCount = Math.max(...memoData.map((memo) => memo.charCount ?? 0));
+
+  // 文字数に応じた背景色を生成
+  const getBackgroundColor = (charCount: number, maxCharCount: number) => {
     if (charCount === 0) {
       return "transparent";
     }
-    let intensity = Math.min(charCount / 1000, 1);
-    intensity += 0.2;
+    let intensity = Math.min(charCount / maxCharCount, 1);
+    intensity = intensity * 0.8 + 0.2;
     const color = `rgba(0, 100, 0, ${intensity})`;
     return color;
   };
+
   // 各メモの日付を modifiers に一日ずつ追加
   const modifiers: Record<string, Date[]> = memoData.reduce(
     (acc, memo) => {
@@ -53,7 +59,7 @@ function Calendar({
         return styles;
       }
       const dateKey = new Date(memo.created_at).toISOString().split("T")[0];
-      const bkg = getBackgroundColor(memo.charCount ?? 0);
+      const bkg = getBackgroundColor(memo.charCount ?? 0, maxCharCount);
       styles[dateKey] = { backgroundColor: bkg };
       return styles;
     },
