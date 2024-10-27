@@ -326,6 +326,10 @@ export default function Chronotes() {
               <SummaryBlock />
             ) : (
               <div className="flex-1 overflow-y-auto relative">
+                <div className="sticky top-0  bg-white dark:bg-gray-800 z-10 shadow-sm p-4">
+                  <h2 className="text-lg font-semibold">{selectedMemo.title || "Untitled Memo"}</h2>
+                  <p className="text-gray-500">{new Date(selectedMemo.created_at).toLocaleDateString()}</p>
+                </div>
                 {loadingDates.some(
                   (loadingDate) => loadingDate.getTime() === date?.getTime()
                 ) ? (
