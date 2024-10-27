@@ -255,6 +255,7 @@ export default function Chronotes() {
           tags: selectedMemo.tags.join(","),
           createdAt: selectedMemo.created_at,
           updatedAt: new Date().toISOString(),
+          length: selectedMemo.charCount,
         },
       });
       console.log("Memo saved successfully.");
