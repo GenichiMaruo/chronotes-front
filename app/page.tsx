@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { getCookie } from "@/lib/cookie";
 import { setCookie } from "@/lib/cookie";
+import { Suspense } from "react";
 import HomeContent from "@/app/home";
 
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ApiHandler } from "@/hooks/use-api";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // ログイン状態を管理
   const router = useRouter();
-  const pathname = usePathname(); // 現在のページパスを取得
   const searchParams = useSearchParams();
   const [, setError] = useState("");
   const { apiRequest } = ApiHandler();
@@ -58,11 +58,13 @@ export default function Home() {
     } else if (token) {
       setIsLoggedIn(true); // トークンが存在する場合、ログイン状態に設定
     }
-  }, [apiRequest, isDemo, pathname, router]); // pathnameの変更を監視
+  }, [apiRequest, isDemo, router]);
 
   return (
     <div className="h-screen w-full flex justify-center items-center">
-      <HomeContent isLoggedIn={isLoggedIn}/>
+      <Suspense fallback={<div>Loading...</div>}>
+        <HomeContent isLoggedIn={isLoggedIn}/>
+      </Suspense>
     </div>
   );
 }
