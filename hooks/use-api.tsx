@@ -10,6 +10,7 @@ interface ApiRequestOptions {
   method: RequestMethod;
   url: string;
   body?: Record<string, unknown> | FormData;
+  query?: Record<string, string>;
   headers?: Record<string, string>;
   isFormData?: boolean;
 }
