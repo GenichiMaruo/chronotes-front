@@ -38,12 +38,11 @@ lowlight.register("ts", ts);
 
 type EditorProps = {
   selectedMemo: Memo;
-  setMemos: React.Dispatch<React.SetStateAction<Memo[]>>;
-  memos: Memo[];
   isEditable: boolean;
 };
 
-export default function Editor({ selectedMemo, setMemos, memos, isEditable }: EditorProps) {
+export default function Editor({ selectedMemo, isEditable }: EditorProps) {
+  const [charCount, setCharCount] = useState(selectedMemo?.charCount || 0); // 初期値をメモの文字数に設定
   const floatingToolbarRef = useRef<HTMLDivElement>(null);
   const { uploadImage } = ApiHandler();
 
@@ -92,14 +91,14 @@ export default function Editor({ selectedMemo, setMemos, memos, isEditable }: Ed
     editable: isEditable,
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
+      // console.log(content);
       const newCharCount = countCharacters(content);
-      const updatedMemo = { ...selectedMemo, content, charCount: newCharCount };
-      const updatedMemos = memos.map((memo) =>
-        memo.note_id === selectedMemo.note_id ? updatedMemo : memo,
-      );
+      setCharCount(newCharCount);
+      console.log(charCount);
 
-      setMemos(updatedMemos);
-      localStorage.setItem("memos", JSON.stringify(updatedMemos));
+      // selectedMemo の内容を更新
+      selectedMemo.content = content;
+      selectedMemo.charCount = newCharCount;
     },
   });
 
@@ -118,12 +117,10 @@ export default function Editor({ selectedMemo, setMemos, memos, isEditable }: Ed
     if (editor && selectedMemo) {
       editor.commands.setContent(selectedMemo.content || "");
       const initialCharCount = countCharacters(selectedMemo.content || "");
-      const updatedMemo = { ...selectedMemo, charCount: initialCharCount };
-      const updatedMemos = memos.map((memo) =>
-        memo.note_id === selectedMemo.note_id ? updatedMemo : memo,
-      );
-      setMemos(updatedMemos);
-      localStorage.setItem("memos", JSON.stringify(updatedMemos));
+      setCharCount(initialCharCount); // 初期文字数を設定
+
+      // selectedMemo に文字数を保存
+      selectedMemo.charCount = initialCharCount;
     }
   }, [selectedMemo, editor]);
 

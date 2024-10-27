@@ -15,6 +15,7 @@ import {
   validateUserId,
   validateEmail,
   validatePassword,
+  validateRequired,
 } from "@/lib/validation";
 
 export default function Signup() {
@@ -35,7 +36,7 @@ export default function Signup() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSignup = async () => {
+  const handleSignUp = async () => {
     setLoading(true);
     setError("");
     setUsernameError("");
@@ -48,8 +49,19 @@ export default function Signup() {
     const userIdErr = validateUserId(userid, 3, 10);
     const emailErr = validateEmail(email);
     const passwordErr = validatePassword(password, confirmPassword);
-    
-    if (usernameErr || userIdErr || emailErr || passwordErr) {
+    const requiredErr = validateRequired(
+      username,
+      userid,
+      email,
+      password,
+      confirmPassword,
+    );
+
+    if (requiredErr) {
+      setError(requiredErr);
+      setLoading(false);
+      return;
+    } else if (usernameErr || userIdErr || emailErr || passwordErr) {
       setUsernameError(usernameErr || "");
       setUserIdError(userIdErr || "");
       setEmailError(emailErr || "");
@@ -86,6 +98,12 @@ export default function Signup() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSignUp();
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <header className="flex justify-between items-center p-4">
@@ -97,7 +115,6 @@ export default function Signup() {
       <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
         <h1 className="text-2xl mb-4">Sign Up</h1>
         <div className="w-full max-w-md">
-
           {/* UserName */}
           <div className="relative mb-6">
             <Label htmlFor="userName">UserName</Label>
@@ -107,6 +124,7 @@ export default function Signup() {
               type="text"
               value={username}
               onChange={(e) => setUserName(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter username"
             />
@@ -121,6 +139,7 @@ export default function Signup() {
               type="text"
               value={userid}
               onChange={(e) => setUserId(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter user id"
             />
@@ -135,6 +154,7 @@ export default function Signup() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter email"
             />
@@ -152,6 +172,7 @@ export default function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
                 onFocus={() => setIsPasswordFocused1(true)}
                 onBlur={() => setIsPasswordFocused1(false)}
+                onKeyDown={handleKeyDown}
                 className="mb-4"
                 placeholder="Enter password"
               />
@@ -180,6 +201,7 @@ export default function Signup() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 onFocus={() => setIsPasswordFocused2(true)}
                 onBlur={() => setIsPasswordFocused2(false)}
+                onKeyDown={handleKeyDown}
                 className="mb-4"
                 placeholder="Enter password"
               />
@@ -194,11 +216,19 @@ export default function Signup() {
                 </button>
               )}
             </div>
-          </div>  
+          </div>
 
-          <Button onClick={handleSignup} disabled={loading} className="w-full">
-            {loading ? "Loading..." : "Sign Up"}
-          </Button>
+          {/* Error Message */}
+          <div className="relative mb-6">
+            {error && <ErrorPopup message={error} />}
+            <Button
+              onClick={handleSignUp}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? "Loading..." : "Sign Up"}
+            </Button>
+          </div>
 
           <div className="mt-4">
             <Link href="/login" className="text-blue-500">

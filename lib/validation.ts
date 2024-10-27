@@ -59,3 +59,17 @@ export const validatePassword = (
     }
     return null;
 };
+
+// required
+export const validateRequired = (
+    username: string,
+    userid: string,
+    email: string,
+    password: string,
+    confirmPass: string
+    ): string | null => {
+    if (!username && !userid && !email && !password && !confirmPass) {
+        return "Please fill out all fields";
+    }
+    return null;
+};
