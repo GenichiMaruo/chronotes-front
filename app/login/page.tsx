@@ -79,6 +79,12 @@ export default function Login() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  };
+
   // identifierが更新されると表示
   // console.log(identifier);
   // console.log(isEmail(identifier));
@@ -100,6 +106,7 @@ export default function Login() {
             type="text"
             value={identifier}
             onChange={(e) => setIdentifier(toHalfWidth(e.target.value))}
+            onKeyDown={handleKeyDown}
             className="mb-4"
             placeholder="Enter email / userID"
           />
@@ -113,6 +120,7 @@ export default function Login() {
               onChange={(e) => setPassword(toHalfWidth(e.target.value))}
               onFocus={() => setIsPasswordFocused(true)}
               onBlur={() => setIsPasswordFocused(false)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter password"
             />

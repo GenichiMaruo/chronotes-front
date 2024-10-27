@@ -1,16 +1,17 @@
 import { getCookie, deleteCookie } from "@/lib/cookie";
 
 const API_URL = "https://chronotes.yashikota.com/api/v1";
-const REQUEST_LIMIT = 30; // 10リクエストまで
-const TIME_WINDOW = 5000; // 5秒間
+const REQUEST_LIMIT = 30;
+const TIME_WINDOW = 5000;
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 interface ApiRequestOptions {
   method: RequestMethod;
   url: string;
-  body?: Record<string, unknown>;
+  body?: Record<string, unknown> | FormData;
   headers?: Record<string, string>;
+  isFormData?: boolean;
 }
 
 let requestCount = 0;
@@ -19,44 +20,48 @@ let firstRequestTime: number | null = null;
 export const ApiHandler = () => {
   const token = getCookie("token");
 
-  const apiRequest = async ({
-    method,
-    url,
-    body,
-    headers = {},
-  }: ApiRequestOptions) => {
+  const handleRateLimit = () => {
     const now = Date.now();
-
-    // 最初のリクエスト時間が未設定なら設定
     if (!firstRequestTime) {
       firstRequestTime = now;
     }
 
-    // 時間ウィンドウが過ぎたらカウントをリセット
     if (now - firstRequestTime > TIME_WINDOW) {
       requestCount = 0;
       firstRequestTime = now;
     }
 
-    // リクエスト回数をチェック
     if (requestCount >= REQUEST_LIMIT) {
       console.error("リクエスト制限: 短期間でのリクエストが多すぎます。");
       throw new Error("Request limit exceeded. Please try again later.");
     }
 
-    // リクエスト回数を増加
     requestCount++;
+  };
+
+  const apiRequest = async ({
+    method,
+    url,
+    body,
+    headers = {},
+    isFormData = false,
+  }: ApiRequestOptions) => {
+    handleRateLimit();
 
     const requestHeaders: HeadersInit = {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
       ...headers,
     };
+
+    // FormDataの場合はContent-Typeを設定しない（ブラウザが自動的に設定する）
+    if (!isFormData) {
+      requestHeaders["Content-Type"] = "application/json";
+    }
 
     const requestOptions: RequestInit = {
       method,
       headers: requestHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
     };
 
     try {
@@ -86,5 +91,35 @@ export const ApiHandler = () => {
     }
   };
 
-  return { apiRequest };
+  // 画像アップロード専用の関数
+  const uploadImage = async (url: string, image: File, additionalData?: Record<string, string>) => {
+    const formData = new FormData();
+    formData.append("image", image);
+
+    // 追加のデータがある場合はFormDataに追加
+    if (additionalData) {
+      Object.entries(additionalData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+    }
+
+    return apiRequest({
+      method: "POST",
+      url,
+      body: formData,
+      isFormData: true,
+    });
+  };
+
+  const getImage = async (url: string) => {
+    const returnData = await apiRequest({
+      method: "GET",
+      url,
+    });
+    // urlが返ってくるのでそこにアクセスして画像を取得
+    const image = await fetch(`${returnData.url}`);
+    return image;
+  }
+
+  return { apiRequest, uploadImage, getImage };
 };

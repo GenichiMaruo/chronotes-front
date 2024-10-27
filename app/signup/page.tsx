@@ -36,7 +36,7 @@ export default function Signup() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSignup = async () => {
+  const handleSignUp = async () => {
     setLoading(true);
     setError("");
     setUsernameError("");
@@ -98,6 +98,12 @@ export default function Signup() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSignUp();
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <header className="flex justify-between items-center p-4">
@@ -118,6 +124,7 @@ export default function Signup() {
               type="text"
               value={username}
               onChange={(e) => setUserName(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter username"
             />
@@ -132,6 +139,7 @@ export default function Signup() {
               type="text"
               value={userid}
               onChange={(e) => setUserId(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter user id"
             />
@@ -146,6 +154,7 @@ export default function Signup() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mb-4"
               placeholder="Enter email"
             />
@@ -163,6 +172,7 @@ export default function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
                 onFocus={() => setIsPasswordFocused1(true)}
                 onBlur={() => setIsPasswordFocused1(false)}
+                onKeyDown={handleKeyDown}
                 className="mb-4"
                 placeholder="Enter password"
               />
@@ -191,6 +201,7 @@ export default function Signup() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 onFocus={() => setIsPasswordFocused2(true)}
                 onBlur={() => setIsPasswordFocused2(false)}
+                onKeyDown={handleKeyDown}
                 className="mb-4"
                 placeholder="Enter password"
               />
@@ -211,7 +222,7 @@ export default function Signup() {
           <div className="relative mb-6">
             {error && <ErrorPopup message={error} />}
             <Button
-              onClick={handleSignup}
+              onClick={handleSignUp}
               disabled={loading}
               className="w-full"
             >
