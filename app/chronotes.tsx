@@ -31,7 +31,17 @@ export default function Chronotes() {
     return savedMemos ? JSON.parse(savedMemos) : [];
   });
 
-  const [selectedMemo, setSelectedMemo] = useState<Memo>(memos[0]);
+  // selectedMemo初期化
+  const [selectedMemo, setSelectedMemo] = useState<Memo>({
+    note_id: 0,
+    user_id: 0,
+    title: "",
+    content: "",
+    tags: [],
+    charCount: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1024px)");
