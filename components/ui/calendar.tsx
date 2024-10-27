@@ -19,7 +19,6 @@ function Calendar({
   memoData,
   ...props
 }: CalendarProps) {
-  
   // 最大文字数を取得
   const maxCharCount = Math.max(...memoData.map((memo) => memo.charCount ?? 0));
 

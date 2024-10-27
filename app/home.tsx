@@ -1,7 +1,11 @@
 import Chronotes from "@/app/chronotes";
 import Header from "@/components/header";
 
-export default function HomeContent({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function HomeContent({
+  isLoggedIn,
+}: {
+  isLoggedIn: boolean;
+}) {
   return (
     <div className="h-full w-full">
       {isLoggedIn ? (
