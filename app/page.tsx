@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { getCookie } from "@/lib/cookie";
 import { setCookie } from "@/lib/cookie";
 import HomeContent from "@/app/home";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { ApiHandler } from "@/hooks/use-api";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // ログイン状態を管理
   const router = useRouter();
   const pathname = usePathname(); // 現在のページパスを取得
+  const searchParams = useSearchParams();
   const [, setError] = useState("");
   const { apiRequest } = ApiHandler();
-  const isDemo = false;
+  
+  const isDemo = searchParams.get("demo") !== null; // URLパラメータからデモユーザーかどうかを取得
 
   useEffect(() => {
     const token = getCookie("token");
