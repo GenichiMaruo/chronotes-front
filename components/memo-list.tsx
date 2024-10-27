@@ -18,7 +18,9 @@ const MemoList: React.FC<MemoListProps> = ({
       <div className="w-[250px] truncate">
         {memos
           .sort(
-            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime(),
           )
           .map((memo) => (
             <div

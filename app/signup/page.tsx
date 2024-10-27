@@ -49,13 +49,19 @@ export default function Signup() {
     const userIdErr = validateUserId(userid, 3, 10);
     const emailErr = validateEmail(email);
     const passwordErr = validatePassword(password, confirmPassword);
-    const requiredErr = validateRequired(username, userid, email, password, confirmPassword);
-    
+    const requiredErr = validateRequired(
+      username,
+      userid,
+      email,
+      password,
+      confirmPassword,
+    );
+
     if (requiredErr) {
       setError(requiredErr);
       setLoading(false);
       return;
-    }else if (usernameErr || userIdErr || emailErr || passwordErr) {
+    } else if (usernameErr || userIdErr || emailErr || passwordErr) {
       setUsernameError(usernameErr || "");
       setUserIdError(userIdErr || "");
       setEmailError(emailErr || "");
@@ -103,7 +109,6 @@ export default function Signup() {
       <main className="flex flex-col items-center justify-center flex-grow px-4 sm:px-6">
         <h1 className="text-2xl mb-4">Sign Up</h1>
         <div className="w-full max-w-md">
-
           {/* UserName */}
           <div className="relative mb-6">
             <Label htmlFor="userName">UserName</Label>
@@ -200,12 +205,16 @@ export default function Signup() {
                 </button>
               )}
             </div>
-          </div>  
+          </div>
 
           {/* Error Message */}
           <div className="relative mb-6">
             {error && <ErrorPopup message={error} />}
-            <Button onClick={handleSignup} disabled={loading} className="w-full">
+            <Button
+              onClick={handleSignup}
+              disabled={loading}
+              className="w-full"
+            >
               {loading ? "Loading..." : "Sign Up"}
             </Button>
           </div>

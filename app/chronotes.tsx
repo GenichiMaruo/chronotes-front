@@ -223,7 +223,7 @@ export default function Chronotes() {
               content: string;
               length: number;
               tags: string;
-              created_at: string,
+              created_at: string;
               updated_at: string;
             }) => {
               // タグがカンマ区切りかつ改行を含む場合、改行を除去
@@ -286,8 +286,9 @@ export default function Chronotes() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* サイドバー */}
         <aside
-          className={`w-[300px] lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r flex flex-col bg-white z-40 ${isSidebarVisible ? "translate-x-0" : "-translate-x-full"
-            } lg:translate-x-0`}
+          className={`w-[300px] lg:relative lg:block absolute top-0 left-0 h-full transition-transform duration-300 border-r flex flex-col bg-white z-40 ${
+            isSidebarVisible ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0`}
           style={{
             backgroundColor: isDarkMode
               ? "rgba(31, 41, 55, 0.8)"
@@ -309,10 +310,11 @@ export default function Chronotes() {
             {/* 要約ボタン */}
             <button
               onClick={() => setShowSummary(!showSummary)}
-              className={`w-full mt-4 p-2 flex items-center justify-center gap-2 rounded-md transition-colors ${showSummary
-                ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
+              className={`w-full mt-4 p-2 flex items-center justify-center gap-2 rounded-md transition-colors ${
+                showSummary
+                  ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  : "bg-blue-500 text-white hover:bg-blue-600"
+              }`}
             >
               <FaChartBar />
               <span>{showSummary ? "Show Daily View" : "View Summary"}</span>
@@ -343,20 +345,21 @@ export default function Chronotes() {
             ) : (
               <div className="flex-1 overflow-y-auto relative">
                 <div className="sticky top-0  bg-white dark:bg-gray-800 z-10 shadow-sm p-4">
-                  <h2 className="text-lg font-semibold">{selectedMemo.title || "Untitled Memo"}</h2>
-                  <p className="text-gray-500">{new Date(selectedMemo.created_at).toLocaleDateString()}</p>
+                  <h2 className="text-lg font-semibold">
+                    {selectedMemo.title || "Untitled Memo"}
+                  </h2>
+                  <p className="text-gray-500">
+                    {new Date(selectedMemo.created_at).toLocaleDateString()}
+                  </p>
                 </div>
                 {loadingDates.some(
-                  (loadingDate) => loadingDate.getTime() === date?.getTime()
+                  (loadingDate) => loadingDate.getTime() === date?.getTime(),
                 ) ? (
                   <div className="flex justify-center items-center h-full">
                     <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mr-4"></div>
                   </div>
                 ) : (
-                  <Editor
-                    selectedMemo={selectedMemo}
-                    isEditable={editable}
-                  />
+                  <Editor selectedMemo={selectedMemo} isEditable={editable} />
                 )}
                 <button
                   onClick={() => {
@@ -368,7 +371,7 @@ export default function Chronotes() {
                   }}
                   className="sticky w-[5em] h-[5em] bottom-4 right-[3em] z-50 p-2 rounded-full border shadow-md bg-white dark:bg-gray-800 dark:shadow-gray-900"
                   style={{ position: "fixed" }}
-                > 
+                >
                   <div className="flex items-center justify-center text-black dark:text-white">
                     {editable ? <FaCheck size={30} /> : <FaPen size={30} />}
                   </div>

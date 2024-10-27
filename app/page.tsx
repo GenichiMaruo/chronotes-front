@@ -1,27 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { getCookie } from "@/lib/cookie";
 import { setCookie } from "@/lib/cookie";
-import { Suspense } from "react";
 import HomeContent from "@/app/home";
-
 import { useRouter, useSearchParams } from "next/navigation";
 import { ApiHandler } from "@/hooks/use-api";
 
-export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // ログイン状態を管理
+// SearchParamsを使用するコンポーネントを分離
+function HomeWithSearchParams() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, setError] = useState("");
   const { apiRequest } = ApiHandler();
-  
-  const isDemo = searchParams.get("demo") !== null; // URLパラメータからデモユーザーかどうかを取得
 
   useEffect(() => {
+    const isDemo = searchParams.get("demo") !== null;
     const token = getCookie("token");
-    
-    // isDemoがtrueで、トークンが無ければデモユーザーでのログインを実行
+
     if (isDemo && !token) {
       (async () => {
         try {
@@ -30,7 +27,6 @@ export default function Home() {
             password: "demoryouga",
           };
 
-          // APIリクエストを送信
           const data = await apiRequest({
             method: "POST",
             url: "/auth/login",
@@ -39,11 +35,9 @@ export default function Home() {
 
           if (data) {
             const { token } = data;
-            // トークンをCookieにセット
             setCookie("token", token, 7);
             setIsLoggedIn(true);
-            // ログイン後のリダイレクト
-            router.push("/"); 
+            router.push("/");
           } else {
             throw new Error("Failed to login");
           }
@@ -56,14 +50,19 @@ export default function Home() {
         }
       })();
     } else if (token) {
-      setIsLoggedIn(true); // トークンが存在する場合、ログイン状態に設定
+      setIsLoggedIn(true);
     }
-  }, [apiRequest, isDemo, router]);
+  }, [apiRequest, searchParams, router]);
 
+  return <HomeContent isLoggedIn={isLoggedIn} />;
+}
+
+// メインコンポーネント
+export default function Home() {
   return (
     <div className="h-screen w-full flex justify-center items-center">
       <Suspense fallback={<div>Loading...</div>}>
-        <HomeContent isLoggedIn={isLoggedIn}/>
+        <HomeWithSearchParams />
       </Suspense>
     </div>
   );
