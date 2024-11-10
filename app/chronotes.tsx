@@ -50,6 +50,11 @@ export default function Chronotes() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [loadingDates, setLoadingDates] = useState<Date[]>([]);
   const [editable, setEditable] = useState(false);
+  const [inputShareID, setInputShareID] = useState("");
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputShareID(event.target.value);
+  };
 
   // メモが選択されたときのハンドラー
   const handleMemoSelect = (memo: Memo) => {
@@ -283,7 +288,6 @@ export default function Chronotes() {
 
   // 共有機能
   const shareMemo = async (selectedMemo: Memo) => {
-    console.log("Sharing memo:", selectedMemo.note_id.toString());
     try {
       const response = await apiRequest({
         method: "POST",
@@ -295,11 +299,68 @@ export default function Chronotes() {
       
       if (response) {
         console.log("Memo shared successfully.");
+        console.log(response.share_id);
         // シェアされたメモのURLをコピー
         navigator.clipboard.writeText(response.share_id);
       }
     } catch (error) {
       console.error("Error sharing memo:", error);
+    }
+  }
+
+  const getShareMemo = async (shareId: string) => {
+    try {
+      const response = await apiRequest({
+        method: "GET",
+        url: `/notes/share?share_url=${shareId}`,
+      });
+
+      if (response) {
+        console.log("Memo fetched successfully.");
+        console.log(response);
+        const data = response.shared_note;
+        console.log(data);
+        const newMemo: Memo = {
+          note_id: data.note_id,
+          user_id: data.user_id,
+          title: data.title || "no title",
+          content: data.content || "no contents",
+          tags: data.tags || [],
+          charCount: data.length,
+          created_at: data.created_at || new Date().toISOString(),
+          updated_at: data.updated_at,
+        };
+
+        console.log(newMemo);
+
+        // contentの先頭と最後の""を削除
+        if (newMemo.content.startsWith('"') && newMemo.content.endsWith('"')) {
+          newMemo.content = newMemo.content.slice(1, -1);
+        }
+        // contentの\nを改行に変換
+        newMemo.content = newMemo.content.replace(/\\n/g, "\n");
+
+        setSelectedMemo(newMemo);
+      }
+    } catch (error) {
+      console.error("Error fetching shared memo:", error);
+    }
+  }
+
+  const deleteShareMemo = async (shareId: string) => {
+    console.log(shareId);
+    try {
+      const response = await apiRequest({
+        method: "DELETE",
+        url: `/notes/share?share_url=${shareId}`,
+      });
+
+      if (response) {
+        console.log("Memo deleted successfully.");
+        console.log(response);
+      }
+    } catch (error) {
+      console.error("Error deleting shared memo:", error);
     }
   }
 
@@ -366,7 +427,7 @@ export default function Chronotes() {
               <SummaryBlock />
             ) : (
               <div className="flex-1 overflow-y-auto relative">
-                <div className="flex">
+                <div className="flex justify-between">
                   {/* タイトル・日付 */} 
                   <div className="sticky top-0  bg-white dark:bg-gray-800 z-10 shadow-sm p-4">
                     <h2 className="text-lg font-semibold">
@@ -376,15 +437,46 @@ export default function Chronotes() {
                       {new Date(selectedMemo.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  {/* 共有ボタン */}
-                  <div className="sticky top-0 right-0 z-10 p-4">
+                  <div>
+                    {/* 共有ボタン */}
+                    <div className="sticky top-0 right-0 z-10 p-4">
+                      <button
+                        className="text-blue-500 hover:underline"
+                        onClick={() => {
+                          shareMemo(selectedMemo);
+                        }}
+                      >
+                        Share
+                      </button>
+                    </div>
+                    {/* 共有削除 */}
+                    <div className="sticky top-0 right-0 z-10 p-4">
+                      <button
+                        className="text-red-500 hover:underline"
+                        onClick={() => {
+                          deleteShareMemo(inputShareID);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  {/* 共有ノートを取得 */}
+                  <div className="sticky top-0 right-[3em] z-10 p-4">
+                    <input
+                      type="text"
+                      value={inputShareID}
+                      onChange={handleInputChange}
+                      placeholder="Enter shared note ID"
+                      className="border p-2 rounded-md"
+                    />
                     <button
                       className="text-blue-500 hover:underline"
                       onClick={() => {
-                        shareMemo(selectedMemo);
+                        getShareMemo(inputShareID);
                       }}
                     >
-                      Share
+                      Load
                     </button>
                   </div>
                 </div>
